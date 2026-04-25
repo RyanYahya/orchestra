@@ -77,6 +77,17 @@ _Summary of implementation_
 
 _What must exist first_
 
+## Assumptions
+
+<!--
+List every non-trivial premise the plan rests on. Tag each:
+  [verified]  — actually checked the codebase, docs, or user
+  [untested]  — guessed; the executor will surface these at phase start
+Assumptions are advisory; they don't block execution.
+-->
+
+- [untested] _Replace with real assumptions before approving the plan_
+
 ## Phases
 
 <!--

@@ -100,7 +100,22 @@ Do not move on until every branch is resolved or explicitly deferred (mark defer
 
 ## PHASE 6: Create Plan
 
-Edit `.orchestra/workflows/current/Plan.md` using the strict format:
+Edit `.orchestra/workflows/current/Plan.md`.
+
+### Assumptions block (write before phases)
+
+Surface every non-trivial premise the plan rests on. Tag each as `[verified]` (you actually checked) or `[untested]` (you're guessing — the executor will surface these at phase start). Example:
+
+```markdown
+## Assumptions
+
+- [verified] Auth middleware lives at `src/middleware/auth.ts` (checked).
+- [untested] The `useUser` hook returns `null` when logged out — assumed but not confirmed.
+```
+
+Assumptions are advisory; they don't block execution. They prevent the most common failure mode: plan looked right but rested on a wrong premise.
+
+### Phase format (strict)
 
 ```markdown
 ### Phase 1: Phase Name
@@ -120,6 +135,7 @@ Rules:
 - `**Verify:**` block with `- Manual:` (required), `- Auto:` (optional)
 - Reference decision IDs inline where a step embodies a decision: `_(see D003)_`
 - NO checkboxes, NO speculative tests, NO rollback/back-compat unless asked, NO assumed fallbacks
+- Keep the plan minimal: every step should trace to the user's request. No drive-by cleanup, no speculative abstractions.
 
 After editing, run:
 

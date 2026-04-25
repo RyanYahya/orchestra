@@ -91,7 +91,26 @@ Provide:
 
 Edit `.orchestra/workflows/current/Plan.md` directly. **Plan.md is the source of truth** for phase/step structure — `parse-plan.sh` derives `status.json.phases[]` from it.
 
-**Required strict format (parser will fail otherwise):**
+### Assumptions block (write before phases)
+
+Surface every non-trivial premise the plan rests on. Think before coding: hidden assumptions are the most common cause of wasted phases. Format:
+
+```markdown
+## Assumptions
+
+- [verified] User auth middleware lives at `src/middleware/auth.ts` (checked).
+- [verified] We're targeting web only, not mobile (per D002).
+- [untested] The existing `useUser` hook returns `null` when logged out — assumed but not confirmed.
+- [untested] No other code consumes the response shape we're about to change.
+```
+
+Tag each item:
+- `[verified]` — you actually checked the codebase, the docs, or the user
+- `[untested]` — you're guessing; the executor will surface these at phase start so the user can correct them if wrong
+
+Assumptions are advisory — they don't block execution, they just give the executor a chance to catch a wrong premise before acting on it.
+
+### Phase format (parser will fail otherwise)
 
 ```markdown
 ### Phase 1: Phase Name
@@ -114,6 +133,7 @@ Edit `.orchestra/workflows/current/Plan.md` directly. **Plan.md is the source of
 - NO new automated test scaffolding (the `Auto:` line is for an existing project script like `npm run typecheck`, not new test files, unless the user explicitly asks)
 - NO rollback or backwards-compatibility code by default — confirm breaking changes with the user
 - NO assumed fallbacks — if something might not exist, ask the user (MANDATORY)
+- Keep the plan minimal: every step should trace to the user's request. No speculative abstractions, flexibility hooks, or "while we're at it" cleanup unless asked.
 
 After editing Plan.md, run:
 

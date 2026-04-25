@@ -80,13 +80,22 @@ IMPLEMENTATION AUDIT for Phase [N]: [Phase Name]
 Files changed:
 [List all files modified/created in this phase]
 
-Review against official documentation:
+== BLOCKING checks — return APPROVED or ISSUES ==
 1. Are the implementations correct per latest docs?
 2. Any anti-patterns or mistakes?
-3. Missing error handling or edge cases?
+3. Missing error handling or edge cases that could break the system?
 4. Security concerns?
 
-Return: APPROVED or ISSUES with specific fixes needed.
+== ADVISORY checks — report under a separate ADVISORY section, do NOT change the verdict ==
+5. Simplicity: any code, abstraction, flag, error-handling, or comment NOT required by this phase's steps? Cite specific lines.
+6. Trace: every changed line maps to a step in this phase. Any files modified that aren't listed in the phase's steps? Drive-by edits?
+7. Surgical: any "improvements" to adjacent code, comments, or formatting that the plan didn't ask for?
+
+Format:
+  ISSUES: [...]    ← only blocking concerns; empty if none
+  ADVISORY: [...]  ← simplicity/trace/surgical observations; informational
+
+Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY items never block.
 ```
 
 ---
@@ -95,15 +104,17 @@ Return: APPROVED or ISSUES with specific fixes needed.
 
 ### If ALL agents return APPROVED:
 
-1. Update `status.json` via Bash + jq:
+1. If any agent returned ADVISORY notes, append them to `.orchestra/workflows/current/Advisory_Notes.md` (create if missing) under a `## Phase [N] — [Phase Name]` heading. These are informational only — never block, never auto-fix.
+
+2. Update `status.json` via Bash + jq:
    - Set the current phase's `status` to `"completed"`
    - Increment `currentPhase`
    - If this was the last phase → set top-level `status` to `"COMPLETED"`
    - Otherwise → set top-level `status` to `"PENDING"`
-   - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N complete — audits APPROVED" }`
+   - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N complete — audits APPROVED (advisory: <count>)" }`
    - Update `lastUpdated`
 
-2. Terminate: run `kill $PPID` via Bash
+3. Terminate: run `kill $PPID` via Bash
 
 ### If ANY agent returns ISSUES:
 

@@ -70,7 +70,24 @@ Ask: "Ready to execute Phase [ID]?"
 
 ---
 
-## STEP 3: Execute Phase (One Step at a Time)
+## STEP 3: Pre-flight — State Assumptions
+
+Before writing any code, read the `## Assumptions` section in `Plan.md` and the resolved decisions in `Decisions.md`. State them back to the user briefly:
+
+- **Verified assumptions:** list them so the user can spot any they disagree with
+- **Untested assumptions:** flag each one. If a check is cheap (read a file, grep a symbol, run a quick command), do it now and either upgrade it to `[verified]` or stop and ask if it turns out wrong. If checking is expensive or impossible without the user, just call it out and proceed.
+
+This pass is advisory — it does not block. Its purpose is to catch a wrong premise before you act on it. Don't turn it into a 20-question interrogation; state, confirm what's cheap to confirm, move on.
+
+After this pass, log:
+
+```
+bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 pre-flight: <N verified, M untested raised>"
+```
+
+---
+
+## STEP 4: Execute Phase (One Step at a Time)
 
 For each pending step:
 
@@ -90,11 +107,11 @@ If a step is significantly larger or riskier than the plan suggested, pause and 
 
 ---
 
-## STEP 4: Verify the Phase
+## STEP 5: Verify the Phase
 
 Two-part verification — do both:
 
-### 4a. Auto verify (if `verify.auto` is set)
+### 5a. Auto verify (if `verify.auto` is set)
 
 ```
 jq -r --arg pid "P1" '.phases[] | select(.id == $pid) | .verify.auto' .orchestra/workflows/current/status.json
@@ -102,7 +119,7 @@ jq -r --arg pid "P1" '.phases[] | select(.id == $pid) | .verify.auto' .orchestra
 
 If non-empty, run that command. Capture exit code and last 50 lines of output. If it fails, stop and ask the user how to proceed.
 
-### 4b. Manual verify
+### 5b. Manual verify
 
 Read `verify.manual` from status.json and present it to the user. Wait for their report ("looks good", "X is broken", etc.).
 
@@ -114,9 +131,9 @@ bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 verify: auto=P
 
 ---
 
-## STEP 5: Phase Audit (specialized agents)
+## STEP 6: Phase Audit (specialized agents)
 
-Dispatch specialized agents in parallel (using your host tool's sub-agent mechanism) to audit the changes:
+Dispatch specialized agents in parallel (using your host tool's sub-agent mechanism) to audit the changes. The audit has two tiers — **blocking** (must be APPROVED to continue) and **advisory** (reported to the user but never blocks).
 
 ```
 IMPLEMENTATION AUDIT for Phase [ID]: [Phase Name]
@@ -124,21 +141,40 @@ IMPLEMENTATION AUDIT for Phase [ID]: [Phase Name]
 Files changed:
 [list of files]
 
-Review against official documentation:
+== BLOCKING checks — return APPROVED or ISSUES ==
 1. Implementations correct per latest docs?
 2. Anti-patterns or mistakes?
-3. Missing error handling or edge cases?
+3. Missing error handling or edge cases that could break the system?
 4. Security concerns?
 
-Return: APPROVED or ISSUES with specific fixes.
+== ADVISORY checks — return as a separate ADVISORY section, never as ISSUES ==
+5. Simplicity: any code, abstraction, flag, error-handling, or comment NOT required by this phase's steps? Cite specific lines.
+6. Trace: every changed line maps to a step in this phase. Any files modified that aren't listed in the phase's steps? Any drive-by edits? List them.
+7. Surgical: any "improvements" to adjacent code, comments, or formatting that the plan didn't ask for?
+
+Format the response:
+
+  ISSUES: [...]   ← only blocking concerns; empty if none
+  ADVISORY: [...] ← simplicity/trace/surgical observations; informational
+
+Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY notes do NOT change the verdict.
 ```
 
-**If APPROVED:** continue to STEP 6.
+**If APPROVED:**
+- If ADVISORY notes are present, surface them to the user as a brief summary so they can decide whether to act on any. Do not auto-fix advisory items unless the user asks.
+- Continue to STEP 7.
+
 **If ISSUES:** present to user, fix per their direction, re-audit until APPROVED.
+
+Log:
+
+```
+bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 audit: APPROVED (advisory: <count>)"
+```
 
 ---
 
-## STEP 6: Commit the Phase (if in a git repo)
+## STEP 7: Commit the Phase (if in a git repo)
 
 ```
 bash .orchestra/scripts/orchestra/commit-phase.sh P1
@@ -150,7 +186,7 @@ If not in a git repo, the script no-ops.
 
 ---
 
-## STEP 7: Mark Phase Complete
+## STEP 8: Mark Phase Complete
 
 ```
 jq --arg pid "P1" --arg ts "$(date '+%Y-%m-%d %H:%M:%S')" '
@@ -164,7 +200,7 @@ bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 completed"
 
 ---
 
-## STEP 8: Next Phase or Complete
+## STEP 9: Next Phase or Complete
 
 **If more phases remain:**
 
