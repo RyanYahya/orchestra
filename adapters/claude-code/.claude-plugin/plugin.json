@@ -2,5 +2,5 @@
   "name": "orchestra",
   "version": "0.1.0",
   "description": "Plan/execute/audit/resolve workflow orchestration with persistent on-disk state. Tool-agnostic core; this plugin is the Claude Code surface.",
-  "author": "RyanYahya"
+  "author": { "name": "RyanYahya" }
 }
