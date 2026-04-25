@@ -68,7 +68,7 @@ In Claude Code these are namespaced as `/orchestra:plan` etc. In other tools the
 
 ## Autonomous execution
 
-For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside Claude Code, since it spawns headless `claude` CLI processes):
+For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside Claude Code Desktop, since it spawns headless `claude` CLI processes):
 
 ```bash
 bash .orchestra/scripts/phase-runner.sh           # auto mode
