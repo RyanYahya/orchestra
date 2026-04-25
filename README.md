@@ -13,11 +13,22 @@ Multiple tools can drive the same workflow on the same repo — state lives in `
 /plugin install orchestra
 ```
 
-After install, run the bootstrap once to drop `.orchestra/` into your project:
+Then, in any project where you want to use orchestra, run once:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/RyanYahya/orchestra/main/install.sh | bash
 ```
+/orchestra:phase-runner
+```
+
+This is the bootstrap. It drops `.orchestra/` into the project, wires up adapters for any other AI tools you have installed (`.codex/`, `.gemini/`, `.cursor/`), appends a pointer to `CLAUDE.md` / `AGENTS.md`, and adds `.orchestra/workflows/current/` to `.gitignore`. Idempotent — safe to run again.
+
+### Updating
+
+When orchestra ships improvements, the update flow has two layers:
+
+1. `/plugin update orchestra` — refreshes the slash command wrappers in Claude Code (and equivalent in other tools).
+2. `/orchestra:update` — pulls the latest `prompts/` and `scripts/` into `.orchestra/`. Your `.orchestra/workflows/` (active, current, archived) are never touched. Run this in every project where you've bootstrapped orchestra.
+
+Both are safe to run repeatedly.
 
 ### Any other AI coding tool
 
@@ -25,7 +36,7 @@ Tell your AI:
 
 > Install the orchestra system from `https://github.com/RyanYahya/orchestra` into this project. Follow `INSTALL.md`.
 
-The AI will read [INSTALL.md](INSTALL.md), detect which tool surfaces are present (`.claude/`, `.codex/`, `.gemini/`, `.cursor/`, etc.), and install slash command adapters into all of them.
+The AI will read [INSTALL.md](INSTALL.md), detect which tool surfaces are present, and install slash command adapters into all of them.
 
 ### Manual
 
@@ -37,18 +48,35 @@ bash /tmp/orch/install.sh --source /tmp/orch
 
 ## Slash commands
 
-Once installed, the following commands are available:
+Once bootstrapped, the following commands are available:
 
 | Command | What it does |
 |---|---|
+| `phase-runner` | Bootstrap orchestra into a project (run once per project) |
+| `update` | Pull the latest prompts/scripts from GitHub (workflows preserved) |
 | `plan` | Research codebase, draft plan, validate against docs |
 | `plan-advanced` | Same as `plan` plus a relentless interview pass — walks the decision tree one question at a time |
-| `execute` | Walk the plan phase-by-phase with manual verification |
-| `execute-headless` | Run plan autonomously via `phase-runner.sh` |
+| `execute` | Walk the plan phase-by-phase, with self-review and audits each phase |
+| `execute-headless` | Execute one phase headlessly (driven by `phase-runner.sh`) |
+| `revise` | Revise the plan mid-execution when reality diverges |
 | `agent` | Dispatch a specialized sub-agent against the workflow |
 | `resolve` | Resolve open decisions logged during planning |
 | `docs-sync` | Sync project docs with the implemented changes |
 | `archive` | Move the current workflow to `archived/` and clear |
+
+In Claude Code these are namespaced as `/orchestra:plan` etc. In other tools they are `/plan`, `/plan-advanced`, etc. (filename = command name).
+
+## Autonomous execution
+
+For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside Claude Code, since it spawns headless `claude` CLI processes):
+
+```bash
+bash .orchestra/scripts/phase-runner.sh           # auto mode
+bash .orchestra/scripts/phase-runner.sh --manual  # pause between phases
+bash .orchestra/scripts/phase-runner.sh 15        # cap at 15 phases
+```
+
+Each phase runs through plan → execute → self-review → external audit → commit. Advisory findings (over-engineering, drive-by edits, repeated patterns) auto-correct or accumulate in `Advisory_Notes.md` so subsequent phases learn from them — no human in the loop required.
 
 In Claude Code these are namespaced as `/orchestra:plan` etc. In other tools they are `/plan`, `/plan-advanced`, etc. (filename = command name).
 

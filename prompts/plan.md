@@ -130,10 +130,24 @@ Assumptions are advisory — they don't block execution, they just give the exec
 - Steps under `**Steps:**` as a numbered list
 - Verify block under `**Verify:**` with `- Manual:` (required) and `- Auto:` (optional)
 - NO checkboxes — `done` flags live in status.json
-- NO new automated test scaffolding (the `Auto:` line is for an existing project script like `npm run typecheck`, not new test files, unless the user explicitly asks)
+- NO new automated test scaffolding (the `Auto:` line is for an existing project script, not new test files, unless the user explicitly asks)
 - NO rollback or backwards-compatibility code by default — confirm breaking changes with the user
 - NO assumed fallbacks — if something might not exist, ask the user (MANDATORY)
 - Keep the plan minimal: every step should trace to the user's request. No speculative abstractions, flexibility hooks, or "while we're at it" cleanup unless asked.
+
+**Detect the project's tooling before generating Auto verify commands.** Don't hardcode `npm run X` or any other runner. Check the repo for:
+
+- `pnpm-lock.yaml` → use `pnpm <script>`
+- `yarn.lock` → use `yarn <script>`
+- `bun.lockb` → use `bun <script>`
+- `package-lock.json` → use `npm run <script>`
+- `pyproject.toml` with `[tool.poetry]` → use `poetry run <cmd>` ; with `[tool.uv]` → use `uv run`
+- `requirements.txt` only → plain `python` / `pytest`
+- `Cargo.toml` → use `cargo <cmd>`
+- `go.mod` → use `go <cmd>`
+- `Gemfile` → use `bundle exec <cmd>`
+
+Read `package.json` `scripts` (or equivalent config) to find the right command name (e.g. `typecheck`, `check`, `lint`) — don't invent one. If the project has no usable verify script, omit the `- Auto:` line; manual verification is always sufficient on its own.
 
 After editing Plan.md, run:
 

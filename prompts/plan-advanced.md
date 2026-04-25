@@ -137,6 +137,8 @@ Rules:
 - NO checkboxes, NO speculative tests, NO rollback/back-compat unless asked, NO assumed fallbacks
 - Keep the plan minimal: every step should trace to the user's request. No drive-by cleanup, no speculative abstractions.
 
+**Detect the project's tooling before generating Auto verify commands.** Check lockfiles / manifests: `pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `bun.lockb` → `bun`, `package-lock.json` → `npm run`, `Cargo.toml` → `cargo`, `go.mod` → `go`, `pyproject.toml` (poetry/uv) accordingly, `Gemfile` → `bundle exec`, etc. Read the manifest to find the actual script name; don't invent one. Omit the `- Auto:` line if no usable script exists.
+
 After editing, run:
 
 ```
