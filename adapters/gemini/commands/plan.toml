@@ -1,0 +1,6 @@
+description = "Start a planning workflow — research, plan, validate"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/plan.md.
+
+Arguments: {{args}}
+"""

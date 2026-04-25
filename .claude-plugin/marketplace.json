@@ -1,0 +1,13 @@
+{
+  "name": "orchestra",
+  "owner": {
+    "name": "RyanYahya"
+  },
+  "plugins": [
+    {
+      "name": "orchestra",
+      "source": "./adapters/claude-code",
+      "description": "Plan/execute/audit/resolve workflow orchestration. Slash commands under /orchestra:* read shared on-disk state in .orchestra/ so the workflow runs identically across Claude Code, Codex, Gemini, Cursor, etc."
+    }
+  ]
+}

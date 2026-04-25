@@ -1,0 +1,6 @@
+description = "Revise the plan mid-execution when reality diverges"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/revise.md.
+
+Arguments: {{args}}
+"""

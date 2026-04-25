@@ -1,0 +1,6 @@
+description = "Comprehensive planning with relentless interview pass"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/plan-advanced.md.
+
+Arguments: {{args}}
+"""

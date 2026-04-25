@@ -1,0 +1,6 @@
+description = "Sync documentation with the current implementation"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/docs-sync.md.
+
+Arguments: {{args}}
+"""

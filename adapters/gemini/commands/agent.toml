@@ -1,0 +1,6 @@
+description = "Run a specialized agent against the current workflow"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/agent.md.
+
+Arguments: {{args}}
+"""

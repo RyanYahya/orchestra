@@ -1,0 +1,6 @@
+description = "Execute the current plan phase-by-phase with audits"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/execute.md.
+
+Arguments: {{args}}
+"""

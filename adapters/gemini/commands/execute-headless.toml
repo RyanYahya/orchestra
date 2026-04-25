@@ -1,0 +1,6 @@
+description = "Execute the current plan headlessly via phase-runner"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/execute-headless.md.
+
+Arguments: {{args}}
+"""

@@ -1,0 +1,6 @@
+description = "Resolve open decisions in the current workflow"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/resolve.md.
+
+Arguments: {{args}}
+"""

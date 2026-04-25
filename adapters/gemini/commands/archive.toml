@@ -1,0 +1,6 @@
+description = "Archive the current workflow to archived/"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/archive.md.
+
+Arguments: {{args}}
+"""
