@@ -12,9 +12,12 @@ You are running in **headless mode** — no human is interacting with you. Execu
 Read these files from `.orchestra/workflows/current/`:
 
 1. `status.json` — current phase, progress, step completion tracking
-2. `Plan.md` — full implementation plan (prose — what to do and how)
+2. `Plan.md` — full implementation plan, including the `## Assumptions` section
 3. `Implementation_Notes.md` — research findings and technical context
 4. `Decisions.md` — resolved decisions and rationale
+5. `Advisory_Notes.md` — patterns to avoid, accumulated from prior phases. Treat every entry under `## Patterns to avoid` as a "do not repeat" rule for this phase. If a rule conflicts with the plan, follow the plan and note the conflict in your log.
+
+For the current phase, also cheap-check any `[untested]` assumptions in Plan.md by reading files or running quick commands. If an assumption proves wrong, you cannot ask the user — instead, log the discrepancy via `log-event.sh` with actor `executor`, then proceed with what you've learned (don't rely on the false premise). If the false premise makes the plan unworkable, append a critical note to `Advisory_Notes.md` and set status to `BLOCKED` so the user can fix on next interactive run.
 
 ---
 
@@ -104,14 +107,19 @@ Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY items never block
 
 ### If ALL agents return APPROVED:
 
-1. If any agent returned ADVISORY notes, append them to `.orchestra/workflows/current/Advisory_Notes.md` (create if missing) under a `## Phase [N] — [Phase Name]` heading. These are informational only — never block, never auto-fix.
+1. **Process ADVISORY notes** (auto-correcting loop — no user interaction in headless mode):
+   - For each ADVISORY item, classify:
+     - **Cheap to fix** (single-line removals, deleting a comment you added, reverting a formatting change, removing an unused import/parameter, deleting an unused abstraction): fix it silently right now.
+     - **Material** (changes API or behavior): leave the code as-is and append the item to `Advisory_Notes.md` under `## Patterns to avoid` so future phases steer clear. Do NOT pause for user input — surface it via the log instead.
+     - **Recurring pattern** worth remembering: append to `Advisory_Notes.md` regardless.
+   - Pre-flight in subsequent phases will read `Advisory_Notes.md` and treat each entry as a "do not repeat" rule.
 
 2. Update `status.json` via Bash + jq:
    - Set the current phase's `status` to `"completed"`
    - Increment `currentPhase`
    - If this was the last phase → set top-level `status` to `"COMPLETED"`
    - Otherwise → set top-level `status` to `"PENDING"`
-   - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N complete — audits APPROVED (advisory: <count>)" }`
+   - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N complete — APPROVED (auto-fixed: X, learned: Y)" }`
    - Update `lastUpdated`
 
 3. Terminate: run `kill $PPID` via Bash

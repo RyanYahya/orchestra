@@ -70,19 +70,26 @@ Ask: "Ready to execute Phase [ID]?"
 
 ---
 
-## STEP 3: Pre-flight — State Assumptions
+## STEP 3: Pre-flight — Internalize Context
 
-Before writing any code, read the `## Assumptions` section in `Plan.md` and the resolved decisions in `Decisions.md`. State them back to the user briefly:
+Before writing any code, do a quick context pass. The goal is to start the phase with a sharper mental model than you'd have from the plan alone — so the implementation comes out cleaner the first time and doesn't need rework.
 
-- **Verified assumptions:** list them so the user can spot any they disagree with
-- **Untested assumptions:** flag each one. If a check is cheap (read a file, grep a symbol, run a quick command), do it now and either upgrade it to `[verified]` or stop and ask if it turns out wrong. If checking is expensive or impossible without the user, just call it out and proceed.
+Read in order:
 
-This pass is advisory — it does not block. Its purpose is to catch a wrong premise before you act on it. Don't turn it into a 20-question interrogation; state, confirm what's cheap to confirm, move on.
+1. **`Plan.md` — `## Assumptions` section.** Verified items are background; untested items need attention.
+   - For each `[untested]` assumption, do a cheap check now (read a file, grep a symbol, run a quick command). Upgrade to `[verified]` if it holds; if it doesn't, stop and ask before proceeding (the phase plan is built on a false premise).
+   - If a check is genuinely expensive without the user, note it and proceed.
 
-After this pass, log:
+2. **`Decisions.md` — resolved decisions.** Internalize the answers; do not re-litigate them mid-phase.
+
+3. **`Advisory_Notes.md` — patterns to avoid.** Treat every entry as a "do not repeat" rule for this phase. If the rules conflict with what the plan asks for, follow the plan and surface the conflict to the user.
+
+State briefly to the user: which assumptions you cheap-checked and the result, and which advisory patterns you'll be watching for. Keep it short — this is orientation, not interrogation.
+
+Log:
 
 ```
-bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 pre-flight: <N verified, M untested raised>"
+bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 pre-flight: <N verified, M untested resolved, K patterns loaded>"
 ```
 
 ---
@@ -131,45 +138,78 @@ bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 verify: auto=P
 
 ---
 
-## STEP 6: Phase Audit (specialized agents)
+## STEP 6: Self-Review + Audit
 
-Dispatch specialized agents in parallel (using your host tool's sub-agent mechanism) to audit the changes. The audit has two tiers — **blocking** (must be APPROVED to continue) and **advisory** (reported to the user but never blocks).
+This is a two-pass review — first you critique your own diff, then external agents do an independent check. The goal is the AI, not the human, doing most of the cleanup work.
+
+### 6a. Self-review (you, against your own diff)
+
+Get the diff for this phase: `git diff HEAD` (or against the prior phase commit if available in `status.json.git.phaseCommits`).
+
+Review your own changes against three criteria:
+
+- **Simplicity:** any code, abstraction, flag, parameter, error-handling branch, or comment NOT required by this phase's steps?
+- **Trace:** does every changed line map to a step in this phase? Any files modified that aren't in the phase's listed files?
+- **Surgical:** any drive-by improvements to adjacent code, formatting, or comments that the plan didn't ask for?
+- **Patterns:** any pattern from `Advisory_Notes.md` that you just repeated?
+
+For each finding, classify:
+
+- **Cheap to fix now** → fix it silently in this phase. "Cheap" = single-line removals, deleting a comment you added, reverting a formatting change, removing an unused import/parameter you introduced, deleting an abstraction you added that isn't used yet. Do not surface these to the user — just clean up.
+- **Material** → changes scope or behavior, or affects an API. Surface to the user with a one-line summary and proceed only after they confirm.
+- **Pattern (recurring)** → append to `Advisory_Notes.md` under `## Patterns to avoid` so future phases learn from it.
+
+Updating `Advisory_Notes.md`:
+
+```
+cat >> .orchestra/workflows/current/Advisory_Notes.md <<'EOF'
+- (Phase P1) <one-line description of the pattern, e.g. "Avoid adding error handling for impossible states; trust upstream guarantees.">
+EOF
+```
+
+### 6b. External audit (specialized agents)
+
+After your self-review and any auto-fixes, dispatch specialized agents in parallel for an independent check:
 
 ```
 IMPLEMENTATION AUDIT for Phase [ID]: [Phase Name]
 
-Files changed:
-[list of files]
+Files changed: [list]
+Self-review summary: [paste your self-review output, including what you auto-fixed]
 
 == BLOCKING checks — return APPROVED or ISSUES ==
 1. Implementations correct per latest docs?
 2. Anti-patterns or mistakes?
-3. Missing error handling or edge cases that could break the system?
+3. Missing error handling for cases that could break the system?
 4. Security concerns?
 
-== ADVISORY checks — return as a separate ADVISORY section, never as ISSUES ==
-5. Simplicity: any code, abstraction, flag, error-handling, or comment NOT required by this phase's steps? Cite specific lines.
-6. Trace: every changed line maps to a step in this phase. Any files modified that aren't listed in the phase's steps? Any drive-by edits? List them.
-7. Surgical: any "improvements" to adjacent code, comments, or formatting that the plan didn't ask for?
+== ADVISORY checks — return under a separate ADVISORY section ==
+5. Simplicity: code beyond what the steps required?
+6. Trace: changes outside the phase's listed files?
+7. Surgical: drive-by edits the executor missed in self-review?
 
-Format the response:
+Format:
+  ISSUES: [...]    ← blocking; empty if none
+  ADVISORY: [...]  ← informational; do not change the verdict
 
-  ISSUES: [...]   ← only blocking concerns; empty if none
-  ADVISORY: [...] ← simplicity/trace/surgical observations; informational
-
-Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY notes do NOT change the verdict.
+Return APPROVED if ISSUES is empty, ISSUES otherwise.
 ```
 
-**If APPROVED:**
-- If ADVISORY notes are present, surface them to the user as a brief summary so they can decide whether to act on any. Do not auto-fix advisory items unless the user asks.
-- Continue to STEP 7.
+### 6c. Apply audit results
 
 **If ISSUES:** present to user, fix per their direction, re-audit until APPROVED.
+
+**If APPROVED:**
+- For each ADVISORY item the external agents raised that the self-review missed:
+  - Cheap to fix → fix silently
+  - Material → surface to user
+  - Recurring pattern → append to `Advisory_Notes.md`
+- Continue to STEP 7.
 
 Log:
 
 ```
-bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 audit: APPROVED (advisory: <count>)"
+bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 audit: APPROVED (auto-fixed: <count>, surfaced: <count>, learned: <count>)"
 ```
 
 ---

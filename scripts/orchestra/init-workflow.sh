@@ -135,6 +135,23 @@ EOF
 
 bash "$SCRIPT_DIR/render-decisions.sh" >/dev/null
 
+# Advisory_Notes.md — growing memory of patterns to avoid.
+# Each phase appends advisory findings here so subsequent phases learn from them.
+cat > "$WORKFLOW_DIR/Advisory_Notes.md" <<EOF
+# Advisory Notes
+
+> Task: $TASK_NAME
+
+Patterns to avoid in future phases, accumulated from each phase's audit.
+The executor reads this file at the start of every phase and treats every
+entry as a "do not repeat" rule. Entries are appended; old entries are
+never removed automatically — they remain as guardrails for the rest of the workflow.
+
+## Patterns to avoid
+
+_None yet — populated after the first phase audit._
+EOF
+
 echo "Workflow initialized: $TASK_NAME"
 echo "  branch: ${BRANCH:-<not a git repo>}"
 echo "  artifacts: $WORKFLOW_DIR"
