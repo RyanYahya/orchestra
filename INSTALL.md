@@ -69,6 +69,7 @@ You can either clone it to a temp directory, or fetch individual files via raw G
 7. **Verify install:**
    - `ls .orchestra/prompts/` — should list the installed prompt files.
    - `ls .orchestra/scripts/` — should show `phase-runner.sh` and `orchestra/`.
+   - `test -f .orchestra/audit-map.json` — should pass; projects can edit it to pin audit agents by phase or path.
    - `test -f .agents/skills/orchestra/SKILL.md` and `test -f .agents/skills/simplify/SKILL.md` — should pass for Codex.
    - For each detected tool, list the installed command directory and confirm the expected wrappers are there.
 

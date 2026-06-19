@@ -54,14 +54,16 @@ Use `Implementation_Notes.md` and `Decisions.md` for context on HOW to implement
 - Do NOT add things not in the plan
 - Do NOT skip verification steps
 - If a step says "verify" or "check" — actually do it
+- Run `git status --short` before editing. Do not stash, reset, overwrite, or reformat unrelated user/agent changes. If a phase file already has unrelated user changes and you cannot edit it safely, write a blocking note and set status to `BLOCKED` instead of guessing.
+- Treat the phase's listed `file: ` paths as the commit scope. Never use `commit-phase.sh --all` in headless mode.
 
 - If a step says `Run /simplify`, run the bundled cleanup-only Simplify pass over this phase diff. In Claude Code, use `/simplify` or `/orchestra:simplify`; in Codex, use `$simplify` or the installed `/simplify` prompt adapter. This pass is for behavior-preserving reuse/simplification/efficiency/altitude cleanups only, and does not replace the mandatory external audit.
 
 **How to update status.json:**
 
-Use Bash with `jq` to update step completion. Example for marking phase 0, step 1 as done:
+Use the wrapper script to update step completion. Example:
 ```bash
-jq '.phases[0].steps[1].done = true | .lastUpdated = "TIMESTAMP"' .orchestra/workflows/current/status.json > /tmp/status_tmp.json && mv /tmp/status_tmp.json .orchestra/workflows/current/status.json
+bash .orchestra/scripts/orchestra/mark-step-done.sh P1 P1.S1
 ```
 
 ---
@@ -70,11 +72,15 @@ jq '.phases[0].steps[1].done = true | .lastUpdated = "TIMESTAMP"' .orchestra/wor
 
 After completing ALL steps in the phase, spawn specialized agents **in parallel** to review the work. This audit is MANDATORY after every phase. Do not mark the phase complete without spawned-agent audit approval.
 
-**Agent discovery (MANDATORY):** First, list all available agents by running via Bash:
+**Agent discovery (MANDATORY):** First, check the machine-readable audit map if present:
+```bash
+bash .orchestra/scripts/orchestra/select-audit-agents.sh P1 $(git diff --name-only HEAD)
+```
+Treat any returned agent names as mandatory first-choice audit lanes. Then list all available agents by running via Bash:
 ```bash
 ls .orchestra/agents/
 ```
-Then read each agent file (e.g., `Read .orchestra/agents/codebase-researcher.md`) and check its `description` field. Spawn any agent whose domain is relevant to the files changed in this phase. Always consider `codebase-researcher` for structural review.
+Read each selected or inferred agent file (e.g., `Read .orchestra/agents/codebase-researcher.md`) and check its `description` field. Spawn mapped agents first, plus any additional agent whose domain is relevant to the files changed in this phase. Always consider `codebase-researcher` for structural review when present.
 
 **IMPORTANT:** Do NOT use Glob to find agent files — use Bash `ls` followed by Read. This avoids path resolution issues with the Glob tool on dotfiles.
 
@@ -124,15 +130,23 @@ Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY items never block
      - **Recurring pattern** worth remembering: append to `Advisory_Notes.md` regardless.
    - Pre-flight in subsequent phases will read `Advisory_Notes.md` and treat each entry as a "do not repeat" rule.
 
-2. Update `status.json` via Bash + jq:
-   - Set the current phase's `status` to `"completed"`
-   - Increment `currentPhase`
-   - If this was the last phase → set top-level `status` to `"COMPLETED"`
-   - Otherwise → set top-level `status` to `"PENDING"`
-   - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N complete — APPROVED (auto-fixed: X, learned: Y)" }`
-   - Update `lastUpdated`
+2. Record the audit result:
+   ```bash
+   bash .orchestra/scripts/orchestra/record-audit.sh P1 --approved --auto-fixed 0 --learned 0
+   ```
 
-3. Terminate using the host-specific rule in STEP 6
+3. Commit only the scoped phase changes:
+   ```bash
+   bash .orchestra/scripts/orchestra/commit-phase.sh P1 --paths-from-plan
+   ```
+   If this refuses because phase file paths are missing or unrelated staged changes exist, write a blocking note to `.orchestra/workflows/current/Audit_Issues.md`, set top-level `status` to `"BLOCKED"`, and terminate via STEP 6. Do not stash user changes and do not use `--all`.
+
+4. Mark the phase complete and advance state:
+   ```bash
+   bash .orchestra/scripts/orchestra/complete-phase.sh P1
+   ```
+
+5. Terminate using the host-specific rule in STEP 6
 
 ### If ANY agent returns ISSUES:
 
@@ -152,9 +166,10 @@ Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY items never block
    [list files that need fixes]
    ```
 
-2. Update `status.json` via Bash + jq:
-   - Set top-level `status` to `"BLOCKED"`
-   - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N audit FAILED — see Audit_Issues.md" }`
+2. Record the audit failure:
+   ```bash
+   bash .orchestra/scripts/orchestra/record-audit.sh P1 --issues --issues-file .orchestra/workflows/current/Audit_Issues.md
+   ```
 
 3. Terminate using the host-specific rule in STEP 6
 

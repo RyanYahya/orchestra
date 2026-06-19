@@ -86,6 +86,14 @@ Read in order:
 
 State briefly to the user: which assumptions you cheap-checked and the result, and which advisory patterns you'll be watching for. Keep it short — this is orientation, not interrogation.
 
+Dirty-worktree policy:
+
+- Before editing, run `git status --short` and note any dirty files.
+- Do not stash, reset, overwrite, or reformat unrelated user/agent changes.
+- If a file you must edit already has unrelated user changes, pause and ask before touching it.
+- Treat the phase's listed `file: ` paths as the commit scope. If the plan omitted a changed file, write the actual phase file list to a temp file and use `commit-phase.sh P1 --paths-file <file>`.
+- Never use `commit-phase.sh --all` unless the user explicitly authorizes a blanket commit.
+
 Log:
 
 ```
@@ -102,11 +110,7 @@ For each pending step:
 2. **Implement** the change
 3. **Mark done** in status.json:
    ```
-   jq --arg pid "P1" --arg sid "P1.S2" '
-     .phases = (.phases | map(if .id == $pid then
-       .steps = (.steps | map(if .id == $sid then .done = true else . end))
-     else . end))
-   ' .orchestra/workflows/current/status.json > /tmp/orch.status && mv /tmp/orch.status .orchestra/workflows/current/status.json
+   bash .orchestra/scripts/orchestra/mark-step-done.sh P1 P1.S2
    ```
 4. **Show your work** — do not rush
 
@@ -132,10 +136,10 @@ If non-empty, run that command. Capture exit code and last 50 lines of output. I
 
 Read `verify.manual` from status.json and present it to the user. Wait for their report ("looks good", "X is broken", etc.).
 
-Log the result:
+Record the result:
 
 ```
-bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 verify: auto=PASS manual=PASS"
+bash .orchestra/scripts/orchestra/record-verify.sh P1 --auto PASS --manual PASS
 ```
 
 ---
@@ -173,7 +177,13 @@ EOF
 
 After your self-review and any auto-fixes, you MUST dispatch specialized agents in parallel for an independent check. This is not optional. The user's request to run Orchestra execution is explicit authorization to use subagents for the phase audit.
 
-Use `.orchestra/agents/` as the specialist list when present. Read the relevant agent files and include their role/instructions in each spawned agent's task. If there are no matching specialist agents, spawn at least one general implementation-audit agent.
+Use `.orchestra/agents/` as the specialist list when present. If `.orchestra/audit-map.json` exists, use it first:
+
+```
+bash .orchestra/scripts/orchestra/select-audit-agents.sh P1 $(git diff --name-only HEAD)
+```
+
+Treat returned agent names as the mandatory first-choice audit lanes, read those agent files, and include their role/instructions in each spawned agent's task. If the map is missing, empty, or returns no available agents, infer relevant specialists from `.orchestra/agents/` as before. If there are no matching specialist agents, spawn at least one general implementation-audit agent.
 
 Host-specific dispatch:
 
@@ -219,10 +229,10 @@ Return APPROVED if ISSUES is empty, ISSUES otherwise.
   - Recurring pattern → append to `Advisory_Notes.md`
 - Continue to STEP 7.
 
-Log:
+Record the audit result:
 
 ```
-bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 audit: APPROVED (auto-fixed: <count>, surfaced: <count>, learned: <count>)"
+bash .orchestra/scripts/orchestra/record-audit.sh P1 --approved --auto-fixed 0 --surfaced 0 --learned 0
 ```
 
 ---
@@ -230,10 +240,10 @@ bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 audit: APPROVE
 ## STEP 7: Commit the Phase (if in a git repo)
 
 ```
-bash .orchestra/scripts/orchestra/commit-phase.sh P1
+bash .orchestra/scripts/orchestra/commit-phase.sh P1 --paths-from-plan
 ```
 
-This stages all changes and commits with `orchestra(P1): <Phase Name>`. The SHA is recorded in `status.json.git.phaseCommits.P1`.
+This stages only files listed in the phase steps and commits with `orchestra(P1): <Phase Name>`. Unrelated unstaged user changes are left alone. If unrelated changes are already staged, the script refuses to commit; stop and ask the user to unstage them or provide an explicit `--paths-file` for this phase. The SHA is recorded in `status.json.git.phaseCommits.P1`.
 
 If not in a git repo, the script no-ops.
 
@@ -242,13 +252,7 @@ If not in a git repo, the script no-ops.
 ## STEP 8: Mark Phase Complete
 
 ```
-jq --arg pid "P1" --arg ts "$(date '+%Y-%m-%d %H:%M:%S')" '
-  .phases = (.phases | map(if .id == $pid then .status = "completed" else . end))
-  | .currentPhase = (.currentPhase + 1)
-  | .lastUpdated = $ts
-' .orchestra/workflows/current/status.json > /tmp/orch.status && mv /tmp/orch.status .orchestra/workflows/current/status.json
-
-bash .orchestra/scripts/orchestra/log-event.sh executor "Phase P1 completed"
+bash .orchestra/scripts/orchestra/complete-phase.sh P1
 ```
 
 ---

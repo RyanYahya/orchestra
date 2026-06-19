@@ -117,7 +117,7 @@ Assumptions are advisory — they don't block execution, they just give the exec
 
 **Steps:**
 1. First step description (file: `path/to/file.ts`, action: create|modify)
-2. Second step description
+2. Second step description (file: `path/to/other.ts`, action: modify)
 
 **Verify:**
 - Manual: Human verification steps — what to do, what to expect
@@ -128,6 +128,7 @@ Assumptions are advisory — they don't block execution, they just give the exec
 
 - Use `### Phase N:` headings, numbered sequentially
 - Steps under `**Steps:**` as a numbered list
+- Every implementation step must include `file: ` with one or more separate backticked paths so `commit-phase.sh --paths-from-plan` can create a scoped phase commit
 - Verify block under `**Verify:**` with `- Manual:` (required) and `- Auto:` (optional)
 - NO checkboxes — `done` flags live in status.json
 - NO new automated test scaffolding (the `Auto:` line is for an existing project script, not new test files, unless the user explicitly asks)

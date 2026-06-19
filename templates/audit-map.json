@@ -1,0 +1,10 @@
+{
+  "defaultAgents": [],
+  "phases": {},
+  "rules": [
+    {
+      "paths": ["src/**/*.tsx", "src/**/*.jsx"],
+      "agents": []
+    }
+  ]
+}

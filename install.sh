@@ -64,6 +64,10 @@ copy_dir_to_parent "$SOURCE_DIR/prompts" .orchestra
 copy_dir_to_parent "$SOURCE_DIR/scripts" .orchestra
 chmod +x .orchestra/scripts/phase-runner.sh .orchestra/scripts/orchestra/*.sh 2>/dev/null || true
 
+if [[ -f "$SOURCE_DIR/templates/audit-map.json" && ! -e .orchestra/audit-map.json ]]; then
+  cp "$SOURCE_DIR/templates/audit-map.json" .orchestra/audit-map.json
+fi
+
 if [[ -d "$SOURCE_DIR/skills" ]]; then
   echo "→ installing Codex/Open Agent skills into .agents/skills"
   mkdir -p .agents/skills

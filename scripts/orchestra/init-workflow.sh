@@ -96,8 +96,8 @@ PHASE FORMAT (parsed by parse-plan.sh — keep strict):
 ### Phase 1: Phase Name
 
 **Steps:**
-1. First step description
-2. Second step description
+1. First step description (file: `path/to/file.ts`, action: create|modify)
+2. Second step description (file: `path/to/other.ts`, action: modify)
 
 **Verify:**
 - Manual: Human verification instructions

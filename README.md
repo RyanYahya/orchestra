@@ -110,6 +110,12 @@ bash .orchestra/scripts/phase-runner.sh --engine codex
 
 Each phase runs through plan → execute → self-review → external audit → commit. Advisory findings (over-engineering, drive-by edits, repeated patterns) auto-correct or accumulate in `Advisory_Notes.md` so subsequent phases learn from them — no human in the loop required.
 
+### Worktree safety
+
+Phase commits are scoped by default. `commit-phase.sh P1 --paths-from-plan` stages only files named in the phase steps, leaves unrelated unstaged user changes alone, and refuses if unrelated changes are already staged. For unusual phases, pass `--paths-file <file>` with an explicit newline-delimited path list. Use `--all` only when you intentionally want a blanket commit.
+
+Workflow state transitions also have wrappers for agents: `mark-step-done.sh`, `record-verify.sh`, `record-audit.sh`, and `complete-phase.sh`. Audit routing can be made deterministic with `.orchestra/audit-map.json` and `select-audit-agents.sh`.
+
 ## Layout
 
 ```

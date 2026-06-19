@@ -33,6 +33,9 @@ cp -R "$TMP/prompts" .orchestra/
 cp -R "$TMP/scripts" .orchestra/
 chmod +x .orchestra/scripts/phase-runner.sh .orchestra/scripts/orchestra/*.sh 2>/dev/null || true
 mkdir -p .orchestra/agents
+if [[ -f "$TMP/templates/audit-map.json" && ! -e .orchestra/audit-map.json ]]; then
+  cp "$TMP/templates/audit-map.json" .orchestra/audit-map.json
+fi
 if [[ -d "$TMP/skills" ]]; then
   mkdir -p .agents/skills
   for skill_dir in "$TMP"/skills/*; do

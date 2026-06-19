@@ -121,8 +121,8 @@ Assumptions are advisory; they don't block execution. They prevent the most comm
 ### Phase 1: Phase Name
 
 **Steps:**
-1. First step (file: `path`, action: create|modify)
-2. Second step
+1. First step (file: `path/to/file.ts`, action: create|modify)
+2. Second step (file: `path/to/other.ts`, action: modify)
 
 **Verify:**
 - Manual: Human verification steps
@@ -132,6 +132,7 @@ Assumptions are advisory; they don't block execution. They prevent the most comm
 Rules:
 - `### Phase N:` headings, numbered
 - Steps under `**Steps:**` as numbered list
+- Every implementation step must include `file: ` with one or more separate backticked paths so `commit-phase.sh --paths-from-plan` can create a scoped phase commit
 - `**Verify:**` block with `- Manual:` (required), `- Auto:` (optional)
 - Reference decision IDs inline where a step embodies a decision: `_(see D003)_`
 - NO checkboxes, NO speculative tests, NO rollback/back-compat unless asked, NO assumed fallbacks
