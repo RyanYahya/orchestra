@@ -21,7 +21,8 @@
     "defaultPrompt": [
       "$orchestra phase-runner",
       "$orchestra plan <task>",
-      "$orchestra execute"
+      "$orchestra execute",
+      "$simplify [target]"
     ],
     "brandColor": "#10A37F"
   }

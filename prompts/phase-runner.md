@@ -24,7 +24,7 @@ bash "$TMP/install.sh" --source "$TMP" --target "$(pwd)"
 
 This:
 - Installs `.orchestra/` (prompts + scripts + workflows dirs)
-- Installs the repo-scoped Codex/Open Agent skill at `.agents/skills/orchestra`
+- Installs bundled Codex/Open Agent skills under `.agents/skills/`
 - Adds a pointer line to `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / `.cursorrules` (whichever exists; creates `AGENTS.md` if none)
 - Adds `.orchestra/workflows/current/` to `.gitignore`
 - Detects which tools are installed (`.claude/`, `.codex/`, `.gemini/`, `.cursor/`) and drops their slash command adapters
@@ -44,16 +44,18 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 - `/orchestra:resolve` — resolve open decisions logged during planning
 - `/orchestra:revise` — revise the plan mid-execution if reality diverges
 - `/orchestra:archive` — archive the workflow when finished
+- `/orchestra:simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
 
 **Inside Codex:**
 - `$orchestra plan <task>` — start an interactive planning workflow
 - `$orchestra plan-advanced <task>` — same, but with a relentless interview pass
 - `$orchestra execute` — execute the plan phase-by-phase, with audits
 - `$orchestra resolve`, `$orchestra revise`, `$orchestra archive` — workflow utilities
-- If `.codex/prompts/` adapters are installed, `/orchestra plan <task>` and `/orchestra execute` are compatibility aliases.
+- `$simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
+- If `.codex/prompts/` adapters are installed, `/orchestra plan <task>`, `/orchestra execute`, and `/simplify` are compatibility aliases.
 
 **Inside Gemini / Cursor:**
-- Same commands without the `orchestra:` prefix where that host's command adapter supports it (e.g. `/plan`, `/execute`).
+- Same commands without the `orchestra:` prefix where that host's command adapter supports it (e.g. `/plan`, `/execute`, `/simplify`).
 
 **Autonomous execution (terminal):**
 ```

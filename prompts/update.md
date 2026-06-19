@@ -27,16 +27,20 @@ trap "rm -rf $TMP" EXIT
 echo "→ fetching latest..."
 git clone --depth 1 https://github.com/RyanYahya/orchestra "$TMP" >/dev/null 2>&1
 
-# Refresh prompts, scripts, and Codex/Open Agent skill (workflows/ stays untouched).
+# Refresh prompts, scripts, and bundled Codex/Open Agent skills (workflows/ stays untouched).
 rm -rf .orchestra/prompts .orchestra/scripts
 cp -R "$TMP/prompts" .orchestra/
 cp -R "$TMP/scripts" .orchestra/
 chmod +x .orchestra/scripts/phase-runner.sh .orchestra/scripts/orchestra/*.sh 2>/dev/null || true
 mkdir -p .orchestra/agents
-if [[ -d "$TMP/skills/orchestra" ]]; then
+if [[ -d "$TMP/skills" ]]; then
   mkdir -p .agents/skills
-  rm -rf .agents/skills/orchestra
-  cp -R "$TMP/skills/orchestra" .agents/skills/
+  for skill_dir in "$TMP"/skills/*; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    rm -rf ".agents/skills/$skill_name"
+    cp -R "$skill_dir" .agents/skills/
+  done
 fi
 
 # Refresh adapters for whichever tools are installed in this project.
@@ -62,6 +66,6 @@ echo "✓ orchestra updated"
 
 Tell the user:
 - The number of prompts now installed: `ls .orchestra/prompts | wc -l`
-- That `.agents/skills/orchestra` was refreshed when the source skill exists
+- That bundled `.agents/skills/*` were refreshed when source skills exist
 - That workflows were preserved
 - That if the host plugin update has not run yet, they should run it too to refresh the installable wrapper/skill surface

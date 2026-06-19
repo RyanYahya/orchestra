@@ -1,0 +1,5 @@
+# simplify
+
+Read and follow the instructions in `.agents/skills/simplify/SKILL.md`.
+
+If that file is missing, run a cleanup-only simplification pass over the target or current diff: reuse, simplification, efficiency, and altitude. Apply only behavior-preserving fixes.

@@ -40,11 +40,11 @@ You can either clone it to a temp directory, or fetch individual files via raw G
 
    If none of these surfaces exist, still install `.orchestra/` itself — the prompts can be invoked manually.
 
-   Always install the Codex/Open Agent skill:
+   Always install the bundled Codex/Open Agent skills:
 
    | Source | Destination |
    |---|---|
-   | `skills/orchestra/` | `.agents/skills/orchestra/` |
+   | `skills/*/` | `.agents/skills/*/` |
 
 5. **Update the project's primary instruction file(s).** For each of these that exists (or create `AGENTS.md` if none), append (idempotently — check first):
 
@@ -53,7 +53,7 @@ You can either clone it to a temp directory, or fetch individual files via raw G
 
    Workflows live in `.orchestra/`. To plan, execute, audit, or archive a task, follow the prompts in `.orchestra/prompts/<name>.md`. State persists in `.orchestra/workflows/current/`. Multiple AI tools (Claude Code, Codex, Gemini, Cursor, etc.) may be active on this repo simultaneously — they share the same workflow state.
 
-   Claude Code: use `/orchestra:<command>`. Codex: use the repo-scoped `$orchestra` skill, natural language like "orchestra execute", or the installed `/orchestra <command>` prompt adapter when available.
+   Claude Code: use `/orchestra:<command>`. Codex: use the repo-scoped `$orchestra` skill, `$simplify` for cleanup-only review, natural language like "orchestra execute", or the installed `/orchestra <command>` / `/simplify` prompt adapters when available.
 
    Do not edit `.orchestra/workflows/current/` by hand unless the active Orchestra prompt tells you to. Respect `.orchestra/workflows/current/.lock`; if another actor holds it, report the holder instead of taking over silently.
    ```
@@ -69,12 +69,12 @@ You can either clone it to a temp directory, or fetch individual files via raw G
 7. **Verify install:**
    - `ls .orchestra/prompts/` — should list the installed prompt files.
    - `ls .orchestra/scripts/` — should show `phase-runner.sh` and `orchestra/`.
-   - `test -f .agents/skills/orchestra/SKILL.md` — should pass for Codex.
+   - `test -f .agents/skills/orchestra/SKILL.md` and `test -f .agents/skills/simplify/SKILL.md` — should pass for Codex.
    - For each detected tool, list the installed command directory and confirm the expected wrappers are there.
 
 8. **Report back to the user:**
    - Which tools you installed adapters for.
-   - The command they can run next: `/orchestra:plan <task>` in Claude Code or `$orchestra plan <task>` in Codex.
+   - The command they can run next: `/orchestra:plan <task>` in Claude Code or `$orchestra plan <task>` in Codex. For cleanup-only review, use `/orchestra:simplify` in Claude Code or `$simplify` in Codex.
    - That `.orchestra/workflows/current/` was added to `.gitignore`.
 
 ## Quick install script

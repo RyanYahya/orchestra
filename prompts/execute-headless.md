@@ -55,6 +55,8 @@ Use `Implementation_Notes.md` and `Decisions.md` for context on HOW to implement
 - Do NOT skip verification steps
 - If a step says "verify" or "check" — actually do it
 
+- If a step says `Run /simplify`, run the bundled cleanup-only Simplify pass over this phase diff. In Claude Code, use `/simplify` or `/orchestra:simplify`; in Codex, use `$simplify` or the installed `/simplify` prompt adapter. This pass is for behavior-preserving reuse/simplification/efficiency/altitude cleanups only, and does not replace the mandatory external audit.
+
 **How to update status.json:**
 
 Use Bash with `jq` to update step completion. Example for marking phase 0, step 1 as done:

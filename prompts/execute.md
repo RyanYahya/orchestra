@@ -112,6 +112,8 @@ For each pending step:
 
 If a step is significantly larger or riskier than the plan suggested, pause and confirm before continuing.
 
+If a step says to run `/simplify`, run the bundled cleanup-only Simplify pass over this phase diff. In Claude Code, use `/simplify` or `/orchestra:simplify`; in Codex, use `$simplify` or the installed `/simplify` prompt adapter. This pass is for behavior-preserving reuse/simplification/efficiency/altitude cleanups only, and does not replace the mandatory external audit.
+
 ---
 
 ## STEP 5: Verify the Phase

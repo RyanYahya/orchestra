@@ -1,5 +1,5 @@
 ---
-description: Orchestra dispatcher - route plan, execute, resolve, revise, update, docs-sync, agent, or archive
+description: Orchestra dispatcher - route plan, execute, simplify, resolve, revise, update, docs-sync, agent, or archive
 argument-hint: [COMMAND] [ARGS]
 ---
 
@@ -14,6 +14,7 @@ Parse the first word of `$ARGUMENTS` as the Orchestra command. Route aliases exa
 - `docs-sync` -> `.orchestra/prompts/docs-sync.md`
 - `agent` -> `.orchestra/prompts/agent.md`
 - `archive` -> `.orchestra/prompts/archive.md`
+- `simplify` -> `.agents/skills/simplify/SKILL.md`
 - `update` -> `.orchestra/prompts/update.md`
 - `phase-runner` or `bootstrap` -> `.orchestra/prompts/phase-runner.md`
 

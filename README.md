@@ -19,11 +19,11 @@ Then, in any project where you want to use orchestra, run once:
 /orchestra:phase-runner
 ```
 
-This is the bootstrap. It drops `.orchestra/` into the project, installs the repo-scoped Codex/Open Agent skill at `.agents/skills/orchestra`, wires up adapters for any other AI tools you have installed (`.codex/`, `.gemini/`, `.cursor/`), appends a pointer to `CLAUDE.md` / `AGENTS.md`, and adds `.orchestra/workflows/current/` to `.gitignore`. Idempotent — safe to run again.
+This is the bootstrap. It drops `.orchestra/` into the project, installs bundled Codex/Open Agent skills under `.agents/skills/`, wires up adapters for any other AI tools you have installed (`.codex/`, `.gemini/`, `.cursor/`), appends a pointer to `CLAUDE.md` / `AGENTS.md`, and adds `.orchestra/workflows/current/` to `.gitignore`. Idempotent — safe to run again.
 
 ### Codex (plugin or skill)
 
-Orchestra is also a native Codex plugin/skill. The repo includes `.codex-plugin/plugin.json` and `skills/orchestra/SKILL.md`, so Codex can invoke the workflow through `$orchestra`.
+Orchestra is also a native Codex plugin/skill. The repo includes `.codex-plugin/plugin.json` and bundled skills under `skills/`, so Codex can invoke the workflow through `$orchestra` and `$simplify`.
 
 For a local/plugin install, add this repo as a Codex marketplace source, install the `orchestra` plugin, restart Codex, then run once per project:
 
@@ -45,6 +45,7 @@ $orchestra execute
 $orchestra resolve
 $orchestra revise
 $orchestra archive
+$simplify [target]
 ```
 
 If `.codex/prompts/` adapters are installed in the project, `/orchestra plan <task>` and `/orchestra execute` are compatibility aliases. The `$orchestra` skill is the preferred Codex surface because Codex custom prompts are deprecated in favor of skills.
@@ -81,7 +82,7 @@ Once bootstrapped, the following commands are available:
 | Command | What it does |
 |---|---|
 | `phase-runner` | Bootstrap orchestra into a project (run once per project) |
-| `update` | Pull the latest prompts/scripts from GitHub (workflows preserved) |
+| `update` | Pull the latest prompts, scripts, and bundled skills from GitHub (workflows preserved) |
 | `plan` | Research codebase, draft plan, validate against docs |
 | `plan-advanced` | Same as `plan` plus a relentless interview pass — walks the decision tree one question at a time |
 | `execute` | Walk the plan phase-by-phase, with self-review and audits each phase |
@@ -91,8 +92,9 @@ Once bootstrapped, the following commands are available:
 | `resolve` | Resolve open decisions logged during planning |
 | `docs-sync` | Sync project docs with the implemented changes |
 | `archive` | Move the current workflow to `archived/` and clear |
+| `simplify` | Cleanup-only diff review for reuse, simplification, efficiency, and altitude; then apply behavior-preserving fixes |
 
-In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke the same command names through `$orchestra plan`, `$orchestra execute`, etc. The Codex prompt adapter also includes `/orchestra <command>` as a compatibility dispatcher when `.codex/prompts/` wrappers are installed.
+In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke the same command names through `$orchestra plan`, `$orchestra execute`, etc. Use `$simplify` for the cleanup-only review pass. The Codex prompt adapter also includes `/orchestra <command>` and `/simplify` compatibility aliases when `.codex/prompts/` wrappers are installed.
 
 ## Autonomous execution
 
@@ -123,7 +125,7 @@ Each phase runs through plan → execute → self-review → external audit → 
 ├── .claude-plugin/       # marketplace manifest for Claude Code
 ├── .codex-plugin/        # native Codex plugin manifest
 ├── .agents/plugins/      # Codex marketplace entry for local/repo installs
-├── skills/               # Codex/Open Agent skills bundled with the plugin
+├── skills/               # Codex/Open Agent skills bundled with the plugin (`orchestra`, `simplify`)
 ├── install.sh            # one-shot installer
 ├── INSTALL.md            # AI-readable install guide
 └── README.md

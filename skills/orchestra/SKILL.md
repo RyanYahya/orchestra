@@ -20,6 +20,7 @@ When the user asks for an Orchestra action, read the matching prompt completely 
 - `docs-sync` -> `.orchestra/prompts/docs-sync.md`
 - `agent` -> `.orchestra/prompts/agent.md`
 - `archive` -> `.orchestra/prompts/archive.md`
+- `simplify` -> `.agents/skills/simplify/SKILL.md`
 - `update` -> `.orchestra/prompts/update.md`
 - `phase-runner` -> `.orchestra/prompts/phase-runner.md`
 
@@ -37,6 +38,6 @@ If the user uses Claude-style names such as `/orchestra:plan`, route to the comm
 
 ## Codex Notes
 
-- This skill is the primary Codex surface. Prefer `$orchestra <command>` or natural language like "orchestra execute P2".
+- This skill is the primary Codex surface. Prefer `$orchestra <command>` or natural language like "orchestra execute P2". For cleanup-only review, use `$simplify` directly or `$orchestra simplify`.
 - Codex custom prompt wrappers may also exist under `.codex/prompts/` for compatibility. Treat them as thin adapters that read the same `.orchestra/prompts/<command>.md` files.
 - If no `.orchestra/` directory exists yet, route `phase-runner` to the bootstrap prompt, or run `install.sh` from the Orchestra source repo when instructed by the prompt.

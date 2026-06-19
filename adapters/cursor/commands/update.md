@@ -1,6 +1,6 @@
 # update
 
-Pull latest orchestra from GitHub (workflows preserved). Run:
+Pull latest orchestra prompts, scripts, and bundled skills from GitHub (workflows preserved). Run:
 
 ```
 bash -c '
@@ -11,5 +11,14 @@ git clone --depth 1 https://github.com/RyanYahya/orchestra "$TMP" >/dev/null 2>&
 rm -rf .orchestra/prompts .orchestra/scripts
 cp -R "$TMP/prompts" .orchestra/; cp -R "$TMP/scripts" .orchestra/
 chmod +x .orchestra/scripts/phase-runner.sh .orchestra/scripts/orchestra/*.sh 2>/dev/null || true
+if [[ -d "$TMP/skills" ]]; then
+  mkdir -p .agents/skills
+  for skill_dir in "$TMP"/skills/*; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    rm -rf ".agents/skills/$skill_name"
+    cp -R "$skill_dir" .agents/skills/
+  done
+fi
 echo "✓ updated"'
 ```
