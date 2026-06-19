@@ -66,7 +66,7 @@ jq '.phases[0].steps[1].done = true | .lastUpdated = "TIMESTAMP"' .orchestra/wor
 
 ## STEP 4: Run Phase Audit
 
-After completing ALL steps in the phase, spawn specialized agents **in parallel** to review the work.
+After completing ALL steps in the phase, spawn specialized agents **in parallel** to review the work. This audit is MANDATORY after every phase. Do not mark the phase complete without spawned-agent audit approval.
 
 **Agent discovery (MANDATORY):** First, list all available agents by running via Bash:
 ```bash
@@ -75,6 +75,14 @@ ls .orchestra/agents/
 Then read each agent file (e.g., `Read .orchestra/agents/codebase-researcher.md`) and check its `description` field. Spawn any agent whose domain is relevant to the files changed in this phase. Always consider `codebase-researcher` for structural review.
 
 **IMPORTANT:** Do NOT use Glob to find agent files — use Bash `ls` followed by Read. This avoids path resolution issues with the Glob tool on dotfiles.
+
+**Host-specific dispatch:**
+
+- **Claude Code:** use the Task/subagent mechanism with the selected `.orchestra/agents/*` specialists.
+- **Codex:** use `multi_agent_v1.spawn_agent` for each audit lane. If the spawn tool is not visible, use tool discovery for "multi-agent spawn subagent", then spawn the agents. The user's request to run Orchestra is explicit authorization to use subagents for mandatory phase audits.
+- If there are no matching specialist agents, spawn at least one general implementation-audit agent.
+- After spawning, wait for every audit agent to finish and collect their verdicts before continuing to STEP 5.
+- If the host has no subagent mechanism available, do not self-approve. Write a blocking audit note to `.orchestra/workflows/current/Audit_Issues.md`, set top-level `status` to `"BLOCKED"`, log `"Phase N audit BLOCKED — subagent mechanism unavailable"`, and terminate via STEP 6.
 
 Audit prompt template:
 ```

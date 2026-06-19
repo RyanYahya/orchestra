@@ -167,9 +167,20 @@ cat >> .orchestra/workflows/current/Advisory_Notes.md <<'EOF'
 EOF
 ```
 
-### 6b. External audit (specialized agents)
+### 6b. External audit (specialized agents) — MANDATORY
 
-After your self-review and any auto-fixes, dispatch specialized agents in parallel for an independent check. Use `.orchestra/agents/` as the specialist list when present. If the host cannot spawn subagents, do a focused local audit against the same checklist and cite the files read:
+After your self-review and any auto-fixes, you MUST dispatch specialized agents in parallel for an independent check. This is not optional. The user's request to run Orchestra execution is explicit authorization to use subagents for the phase audit.
+
+Use `.orchestra/agents/` as the specialist list when present. Read the relevant agent files and include their role/instructions in each spawned agent's task. If there are no matching specialist agents, spawn at least one general implementation-audit agent.
+
+Host-specific dispatch:
+
+- **Claude Code:** use the Task/subagent mechanism with the relevant `.orchestra/agents/*` specialists.
+- **Codex:** use `multi_agent_v1.spawn_agent` for each audit lane. If the spawn tool is not currently visible, use tool discovery for "multi-agent spawn subagent", then spawn the agents. Prefer `explorer` agents for read-only audit lanes and `worker` only when the audit agent is explicitly asked to patch a bounded write set.
+
+After spawning, wait for every audit agent to finish and collect their verdicts before continuing to Step 6c.
+
+Do NOT substitute self-review or a local audit for this step when a subagent mechanism exists. If no subagent mechanism is available in the host, stop before Step 7, set top-level `status` to `"BLOCKED"`, log `"Phase P1 audit BLOCKED — subagent mechanism unavailable"`, and ask the user to run the phase in a host with subagent support.
 
 ```
 IMPLEMENTATION AUDIT for Phase [ID]: [Phase Name]

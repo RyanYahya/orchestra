@@ -31,7 +31,8 @@ If the user uses Claude-style names such as `/orchestra:plan`, route to the comm
 - Do not remove or overwrite a lock unless the user explicitly asks.
 - Do not edit `.orchestra/workflows/current/` by hand unless the selected prompt instructs it.
 - Prefer scripts under `.orchestra/scripts/orchestra/` when the selected prompt names them.
-- For audits and design reviews, use `.orchestra/agents/` as the project specialist list when present. If the host can spawn subagents, dispatch the relevant specialists. If it cannot, do focused local research and cite the files read.
+- For audits and design reviews, use `.orchestra/agents/` as the project specialist list when present.
+- During `execute` and `execute-headless`, spawned-agent audit is mandatory after every phase. Treat `$orchestra execute`, `/orchestra:execute`, and phase-runner execution as explicit user authorization to spawn subagents for the audit. In Codex, use `multi_agent_v1.spawn_agent` after tool discovery if needed. Do not replace the spawned-agent audit with self-review; block the phase if no subagent mechanism is available.
 - Keep workflow changes scoped to the active Orchestra command. Do not advance phases, mark steps done, or archive workflows outside the selected prompt's procedure.
 
 ## Codex Notes
