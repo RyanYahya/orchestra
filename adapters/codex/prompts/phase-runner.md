@@ -1,3 +1,7 @@
+---
+description: Orchestra phase-runner - bootstrap Orchestra into this project
+---
+
 Set up the orchestra workflow system in the current project.
 
 Run:
@@ -6,7 +10,7 @@ Run:
 bash -c '
 set -e
 if [[ -d .orchestra/scripts && -f .orchestra/scripts/phase-runner.sh ]]; then
-  echo "✓ already installed"; exit 0
+  echo "✓ orchestra core already installed; refreshing any missing adapters/skills"
 fi
 TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
 git clone --depth 1 https://github.com/RyanYahya/orchestra "$TMP" >/dev/null 2>&1
@@ -14,4 +18,6 @@ bash "$TMP/install.sh" --source "$TMP" --target "$(pwd)"
 '
 ```
 
-After install, available commands: /plan, /plan-advanced, /execute, /resolve, /revise, /archive. Autonomous: `bash .orchestra/scripts/phase-runner.sh` from a terminal.
+After install, available commands in Codex: `$orchestra plan`, `$orchestra plan-advanced`, `$orchestra execute`, `$orchestra resolve`, `$orchestra revise`, `$orchestra archive`. If `.codex/prompts/` adapters are installed, `/orchestra plan` and `/orchestra execute` are compatibility aliases.
+
+Autonomous: `bash .orchestra/scripts/phase-runner.sh --engine codex` from a terminal, or omit `--engine` to auto-select the available CLI.

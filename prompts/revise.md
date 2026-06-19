@@ -88,4 +88,4 @@ bash .orchestra/scripts/orchestra/log-event.sh reviser "Plan revised: $ARGUMENTS
 bash .orchestra/scripts/orchestra/unlock.sh reviser
 ```
 
-Tell the user the next step: resume `/orchestra:execute` from the affected phase.
+Tell the user the next step: resume `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex from the affected phase.

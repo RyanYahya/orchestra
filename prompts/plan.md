@@ -8,7 +8,7 @@ Run: `ls -la .orchestra/workflows/current/ 2>/dev/null || echo "NO_ACTIVE_WORKFL
 
 ## Available Specialized Agents
 
-Run: `ls .claude/agents/ 2>/dev/null || ls .agents/ 2>/dev/null || echo "NO_AGENTS_DIR"`
+Run: `ls .orchestra/agents/ 2>/dev/null || ls .claude/agents/ 2>/dev/null || ls .agents/ 2>/dev/null || echo "NO_AGENTS_DIR"`
 
 ---
 
@@ -38,7 +38,7 @@ If the script exits non-zero, another actor is already driving the workflow. **S
 
 **If Start Executing:**
 
-- Tell the user: "Run `/orchestra:execute` (or the equivalent in your tool) to begin phase-by-phase implementation."
+- Tell the user: "Run `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex to begin phase-by-phase implementation."
 
 ### If NO_ACTIVE_WORKFLOW:
 
@@ -54,7 +54,7 @@ This records the current git branch into `status.json.git.branch` so phase commi
 
 ## PHASE 2: Research (Parallel)
 
-Analyze the task and dispatch parallel research using whatever sub-agent or task-spawning mechanism your host tool provides. Run them concurrently where supported.
+Analyze the task and dispatch parallel research using whatever sub-agent or task-spawning mechanism your host tool provides. Run them concurrently where supported. If the host cannot spawn subagents, do the research locally and cite the files/docs read.
 
 **Always research:**
 
@@ -215,4 +215,4 @@ bash .orchestra/scripts/orchestra/log-event.sh planner "Plan approved — ready 
 bash .orchestra/scripts/orchestra/unlock.sh planner
 ```
 
-Tell the user the next step: `/orchestra:execute` (interactive, phase-by-phase with audits) or `bash .orchestra/scripts/phase-runner.sh` (autonomous).
+Tell the user the next step: `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex for interactive phase-by-phase execution, or `bash .orchestra/scripts/phase-runner.sh` for autonomous execution.

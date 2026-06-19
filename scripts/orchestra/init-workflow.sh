@@ -17,7 +17,7 @@ fi
 
 if workflow_exists; then
   echo "ERROR: Active workflow exists: $(get_task_name)" >&2
-  echo "       Archive (/orchestra:archive) or clear it first." >&2
+  echo "       Archive (/orchestra:archive in Claude Code, or \$orchestra archive in Codex) or clear it first." >&2
   exit 1
 fi
 

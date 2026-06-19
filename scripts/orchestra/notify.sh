@@ -3,7 +3,7 @@
 # Usage: bash .orchestra/scripts/orchestra/notify.sh "Your message here"
 
 MESSAGE="${1:-Phase Runner needs attention}"
-TITLE="Claude Orchestrator"
+TITLE="Orchestra"
 
 # Terminal bell + message
 printf "\a"

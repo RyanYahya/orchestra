@@ -8,7 +8,7 @@ Run: `ls -la .orchestra/workflows/current/ 2>/dev/null || echo "NO_ACTIVE_WORKFL
 
 ## Available Specialized Agents
 
-Run: `ls .claude/agents/ 2>/dev/null || ls .agents/ 2>/dev/null || echo "NO_AGENTS_DIR"`
+Run: `ls .orchestra/agents/ 2>/dev/null || ls .claude/agents/ 2>/dev/null || ls .agents/ 2>/dev/null || echo "NO_AGENTS_DIR"`
 
 ---
 
@@ -33,11 +33,11 @@ If non-zero, another actor is driving the workflow. Stop and report.
 
 **Your role is to EXECUTE the plan, not to interpret it.** When in doubt, ask.
 
-If the plan itself looks wrong, **stop and run `/orchestra:revise`** (or describe the issue and ask the user) — don't silently improvise.
+If the plan itself looks wrong, **stop and run `/orchestra:revise` in Claude Code or `$orchestra revise` in Codex** (or describe the issue and ask the user) — don't silently improvise.
 
 ### If NO_ACTIVE_WORKFLOW:
 
-Tell user: "No active workflow. Run `/orchestra:plan [task]` first." Release the lock and stop.
+Tell user: "No active workflow. Run `/orchestra:plan [task]` in Claude Code or `$orchestra plan [task]` in Codex first." Release the lock and stop.
 
 ### If workflow exists:
 
@@ -169,7 +169,7 @@ EOF
 
 ### 6b. External audit (specialized agents)
 
-After your self-review and any auto-fixes, dispatch specialized agents in parallel for an independent check:
+After your self-review and any auto-fixes, dispatch specialized agents in parallel for an independent check. Use `.orchestra/agents/` as the specialist list when present. If the host cannot spawn subagents, do a focused local audit against the same checklist and cite the files read:
 
 ```
 IMPLEMENTATION AUDIT for Phase [ID]: [Phase Name]
@@ -259,4 +259,4 @@ bash .orchestra/scripts/orchestra/log-event.sh executor "All phases completed"
 bash .orchestra/scripts/orchestra/unlock.sh executor
 ```
 
-Present final summary and ask: "Archive this workflow? (`/orchestra:archive`)"
+Present final summary and ask: "Archive this workflow? (`/orchestra:archive` in Claude Code, `$orchestra archive` in Codex)"

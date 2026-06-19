@@ -1,6 +1,6 @@
 # orchestra
 
-Plan / execute / audit / resolve workflow orchestration for AI coding agents. Tool-agnostic on-disk state, identical slash commands across **Claude Code**, **Codex CLI**, **Gemini CLI**, **Cursor**, and others.
+Plan / execute / audit / resolve workflow orchestration for AI coding agents. Tool-agnostic on-disk state, natural command surfaces for **Claude Code**, **Codex**, **Gemini CLI**, **Cursor**, and others.
 
 Multiple tools can drive the same workflow on the same repo — state lives in `.orchestra/workflows/current/`, every tool reads the same prompts in `.orchestra/prompts/`, every action is logged with an `actor` field so a Claude Code session and a Codex session can collaborate on one workflow.
 
@@ -19,14 +19,42 @@ Then, in any project where you want to use orchestra, run once:
 /orchestra:phase-runner
 ```
 
-This is the bootstrap. It drops `.orchestra/` into the project, wires up adapters for any other AI tools you have installed (`.codex/`, `.gemini/`, `.cursor/`), appends a pointer to `CLAUDE.md` / `AGENTS.md`, and adds `.orchestra/workflows/current/` to `.gitignore`. Idempotent — safe to run again.
+This is the bootstrap. It drops `.orchestra/` into the project, installs the repo-scoped Codex/Open Agent skill at `.agents/skills/orchestra`, wires up adapters for any other AI tools you have installed (`.codex/`, `.gemini/`, `.cursor/`), appends a pointer to `CLAUDE.md` / `AGENTS.md`, and adds `.orchestra/workflows/current/` to `.gitignore`. Idempotent — safe to run again.
+
+### Codex (plugin or skill)
+
+Orchestra is also a native Codex plugin/skill. The repo includes `.codex-plugin/plugin.json` and `skills/orchestra/SKILL.md`, so Codex can invoke the workflow through `$orchestra`.
+
+For a local/plugin install, add this repo as a Codex marketplace source, install the `orchestra` plugin, restart Codex, then run once per project:
+
+```bash
+codex plugin marketplace add RyanYahya/orchestra
+```
+
+Then open `/plugins` in Codex and install Orchestra.
+
+```
+$orchestra phase-runner
+```
+
+After bootstrap, use:
+
+```
+$orchestra plan <task>
+$orchestra execute
+$orchestra resolve
+$orchestra revise
+$orchestra archive
+```
+
+If `.codex/prompts/` adapters are installed in the project, `/orchestra plan <task>` and `/orchestra execute` are compatibility aliases. The `$orchestra` skill is the preferred Codex surface because Codex custom prompts are deprecated in favor of skills.
 
 ### Updating
 
 When orchestra ships improvements, the update flow has two layers:
 
-1. `/plugin update orchestra` — refreshes the slash command wrappers in Claude Code (and equivalent in other tools).
-2. `/orchestra:update` — pulls the latest `prompts/` and `scripts/` into `.orchestra/`. Your `.orchestra/workflows/` (active, current, archived) are never touched. Run this in every project where you've bootstrapped orchestra.
+1. `/plugin update orchestra` in Claude Code, or the Codex plugin update flow — refreshes the installable plugin/wrapper surface.
+2. `/orchestra:update` in Claude Code or `$orchestra update` in Codex — pulls the latest `prompts/`, `scripts/`, adapters, and skill into the project. Your `.orchestra/workflows/` (active, current, archived) are never touched. Run this in every project where you've bootstrapped orchestra.
 
 Both are safe to run repeatedly.
 
@@ -64,21 +92,21 @@ Once bootstrapped, the following commands are available:
 | `docs-sync` | Sync project docs with the implemented changes |
 | `archive` | Move the current workflow to `archived/` and clear |
 
-In Claude Code these are namespaced as `/orchestra:plan` etc. In other tools they are `/plan`, `/plan-advanced`, etc. (filename = command name).
+In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke the same command names through `$orchestra plan`, `$orchestra execute`, etc. The Codex prompt adapter also includes `/orchestra <command>` as a compatibility dispatcher when `.codex/prompts/` wrappers are installed.
 
 ## Autonomous execution
 
-For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside Claude Code Desktop, since it spawns headless `claude` CLI processes):
+For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside an interactive agent session, since it spawns child CLI processes):
 
 ```bash
 bash .orchestra/scripts/phase-runner.sh           # auto mode
 bash .orchestra/scripts/phase-runner.sh --manual  # pause between phases
 bash .orchestra/scripts/phase-runner.sh 15        # cap at 15 phases
+bash .orchestra/scripts/phase-runner.sh --engine claude
+bash .orchestra/scripts/phase-runner.sh --engine codex
 ```
 
 Each phase runs through plan → execute → self-review → external audit → commit. Advisory findings (over-engineering, drive-by edits, repeated patterns) auto-correct or accumulate in `Advisory_Notes.md` so subsequent phases learn from them — no human in the loop required.
-
-In Claude Code these are namespaced as `/orchestra:plan` etc. In other tools they are `/plan`, `/plan-advanced`, etc. (filename = command name).
 
 ## Layout
 
@@ -88,11 +116,14 @@ In Claude Code these are namespaced as `/orchestra:plan` etc. In other tools the
 ├── scripts/              # phase-runner.sh + workflow helpers (bash, universal)
 ├── adapters/
 │   ├── claude-code/      # Claude Code plugin (slash commands + plugin.json)
-│   ├── codex/            # Codex CLI prompts
+│   ├── codex/            # Codex prompt adapters
 │   ├── gemini/           # Gemini CLI commands
 │   ├── cursor/           # Cursor commands
 │   └── aider/            # Aider integration notes
 ├── .claude-plugin/       # marketplace manifest for Claude Code
+├── .codex-plugin/        # native Codex plugin manifest
+├── .agents/plugins/      # Codex marketplace entry for local/repo installs
+├── skills/               # Codex/Open Agent skills bundled with the plugin
 ├── install.sh            # one-shot installer
 ├── INSTALL.md            # AI-readable install guide
 └── README.md
@@ -113,7 +144,7 @@ A simple lockfile (`.orchestra/workflows/current/.lock`) prevents concurrent wri
 
 ## Editing prompts
 
-The slash commands across every tool are thin wrappers — they all read `.orchestra/prompts/<name>.md`. Edit a prompt once and every tool's slash command updates on next invocation. No need to re-install or sync.
+The command surfaces across every tool are thin wrappers — they all read `.orchestra/prompts/<name>.md`. Edit a prompt once and every tool's command updates on next invocation. No need to re-install or sync.
 
 ## License
 

@@ -21,6 +21,12 @@ rm -rf .orchestra/prompts .orchestra/scripts
 cp -R "$TMP/prompts" .orchestra/
 cp -R "$TMP/scripts" .orchestra/
 chmod +x .orchestra/scripts/phase-runner.sh .orchestra/scripts/orchestra/*.sh 2>/dev/null || true
+mkdir -p .orchestra/agents
+if [[ -d "$TMP/skills/orchestra" ]]; then
+  mkdir -p .agents/skills
+  rm -rf .agents/skills/orchestra
+  cp -R "$TMP/skills/orchestra" .agents/skills/
+fi
 
 for t in claude-code codex gemini cursor; do
   case "$t" in
@@ -41,4 +47,4 @@ echo "✓ orchestra updated (workflows preserved)"
 
 ## Step 2: Confirm
 
-Tell the user the number of prompts installed (`ls .orchestra/prompts | wc -l`) and remind them: if they're on Claude Code and haven't run `/plugin update orchestra` yet, do that too — it refreshes the slash command wrappers, while this command refreshed the on-disk core.
+Tell the user the number of prompts installed (`ls .orchestra/prompts | wc -l`), that `.agents/skills/orchestra` was refreshed for Codex, and remind them: if they're on Claude Code and haven't run `/plugin update orchestra` yet, do that too — it refreshes the slash command wrappers, while this command refreshed the on-disk core.

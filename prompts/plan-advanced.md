@@ -8,13 +8,13 @@ Run: `ls -la .orchestra/workflows/current/ 2>/dev/null || echo "NO_ACTIVE_WORKFL
 
 ## Available Specialized Agents
 
-Run: `ls .claude/agents/ 2>/dev/null || ls .agents/ 2>/dev/null || echo "NO_AGENTS_DIR"`
+Run: `ls .orchestra/agents/ 2>/dev/null || ls .claude/agents/ 2>/dev/null || ls .agents/ 2>/dev/null || echo "NO_AGENTS_DIR"`
 
 ---
 
 ## Your Instructions
 
-This produces the **same artifacts** as `/orchestra:plan` (`Plan.md`, `Implementation_Notes.md`, `decisions.json`+`Decisions.md`, `status.json`) but with relentless interview passes that walk every branch of the decision tree.
+This produces the **same artifacts** as `/orchestra:plan` in Claude Code or `$orchestra plan` in Codex (`Plan.md`, `Implementation_Notes.md`, `decisions.json`+`Decisions.md`, `status.json`) but with relentless interview passes that walk every branch of the decision tree.
 
 ### Step 0: Acquire the lock
 
@@ -37,7 +37,7 @@ If non-zero, another actor holds it. Report the holder and stop.
 1. Read `status.json` and `Plan.md`
 2. Ask: **Continue Planning (Interview)** or **Start Executing**
 3. If continuing → jump to PHASE 5 (Design Tree Walk)
-4. If executing → tell user to run `/orchestra:execute`
+4. If executing → tell user to run `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex
 
 ### If NO_ACTIVE_WORKFLOW:
 
@@ -70,7 +70,7 @@ bash .orchestra/scripts/orchestra/add-decision.sh answer D001 "User's chosen ans
 
 ## PHASE 3: Research (Parallel)
 
-Dispatch parallel research using your host tool's sub-agent mechanism. Always include a codebase researcher; add domain-specific agents whose `description` overlaps with the task.
+Dispatch parallel research using your host tool's sub-agent mechanism. Always include a codebase researcher; add domain-specific agents whose `description` overlaps with the task. If the host cannot spawn subagents, do focused local research and cite the files/docs read.
 
 Include the resolved decisions from PHASE 2 in the agent prompts so they research with full context.
 
@@ -187,4 +187,4 @@ bash .orchestra/scripts/orchestra/log-event.sh planner-advanced "Plan approved v
 bash .orchestra/scripts/orchestra/unlock.sh planner-advanced
 ```
 
-Tell the user: `/orchestra:execute` or `bash .orchestra/scripts/phase-runner.sh`.
+Tell the user: `/orchestra:execute` in Claude Code, `$orchestra execute` in Codex, or `bash .orchestra/scripts/phase-runner.sh`.

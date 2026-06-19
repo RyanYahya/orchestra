@@ -1,0 +1,28 @@
+{
+  "name": "orchestra",
+  "version": "0.1.0",
+  "description": "Plan, execute, audit, resolve, update, and archive shared AI coding workflows with persistent on-disk state.",
+  "author": {
+    "name": "RyanYahya"
+  },
+  "homepage": "https://github.com/RyanYahya/orchestra",
+  "repository": "https://github.com/RyanYahya/orchestra",
+  "license": "MIT",
+  "keywords": ["workflow", "planning", "execution", "audit", "multi-agent"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Orchestra",
+    "shortDescription": "Shared plan/execute/audit workflows for Codex and Claude.",
+    "longDescription": "Orchestra gives Codex, Claude Code, and other coding agents one shared workflow state under .orchestra/, with reusable prompts for planning, execution, audits, decisions, updates, and archival.",
+    "developerName": "RyanYahya",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/RyanYahya/orchestra",
+    "defaultPrompt": [
+      "$orchestra phase-runner",
+      "$orchestra plan <task>",
+      "$orchestra execute"
+    ],
+    "brandColor": "#10A37F"
+  }
+}

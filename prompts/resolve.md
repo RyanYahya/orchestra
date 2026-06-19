@@ -146,7 +146,7 @@ Return: APPROVED or ISSUES with specifics.
    To continue execution:
    - Auto:   npm run execute
    - Manual: npm run execute:manual
-   - Interactive: /orchestra:execute
+   - Interactive: `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex
    ```
 
 ### If ISSUES persist:

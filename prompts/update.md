@@ -1,9 +1,9 @@
 # Update Orchestra in This Project
 
-Pull the latest `prompts/`, `scripts/`, and adapter wrappers from `RyanYahya/orchestra` into this project. Workflows in `.orchestra/workflows/` are preserved.
+Pull the latest `prompts/`, `scripts/`, skills, and adapter wrappers from `RyanYahya/orchestra` into this project. Workflows in `.orchestra/workflows/` are preserved.
 
 When to run:
-- After `/plugin update orchestra` (Claude Code) — that updates the slash commands but not the on-disk `.orchestra/` core
+- After `/plugin update orchestra` in Claude Code or updating the Orchestra plugin in Codex — that updates the installable command/skill surface but not the on-disk `.orchestra/` core
 - Whenever you want the latest improvements
 - After pulling a repo where someone else upgraded orchestra
 
@@ -19,7 +19,7 @@ Run:
 bash -c '
 set -e
 if [[ ! -d .orchestra ]]; then
-  echo "ERROR: .orchestra/ not found. Run /orchestra:phase-runner to bootstrap first." >&2
+  echo "ERROR: .orchestra/ not found. Run /orchestra:phase-runner in Claude Code or \$orchestra phase-runner in Codex to bootstrap first." >&2
   exit 1
 fi
 TMP=$(mktemp -d)
@@ -27,11 +27,17 @@ trap "rm -rf $TMP" EXIT
 echo "→ fetching latest..."
 git clone --depth 1 https://github.com/RyanYahya/orchestra "$TMP" >/dev/null 2>&1
 
-# Refresh prompts and scripts (workflows/ stays untouched).
+# Refresh prompts, scripts, and Codex/Open Agent skill (workflows/ stays untouched).
 rm -rf .orchestra/prompts .orchestra/scripts
 cp -R "$TMP/prompts" .orchestra/
 cp -R "$TMP/scripts" .orchestra/
 chmod +x .orchestra/scripts/phase-runner.sh .orchestra/scripts/orchestra/*.sh 2>/dev/null || true
+mkdir -p .orchestra/agents
+if [[ -d "$TMP/skills/orchestra" ]]; then
+  mkdir -p .agents/skills
+  rm -rf .agents/skills/orchestra
+  cp -R "$TMP/skills/orchestra" .agents/skills/
+fi
 
 # Refresh adapters for whichever tools are installed in this project.
 for t in claude-code codex gemini cursor; do
@@ -56,5 +62,6 @@ echo "✓ orchestra updated"
 
 Tell the user:
 - The number of prompts now installed: `ls .orchestra/prompts | wc -l`
+- That `.agents/skills/orchestra` was refreshed when the source skill exists
 - That workflows were preserved
-- That if `/plugin update orchestra` hasn't run yet (Claude Code users), they should run it to refresh the slash command wrappers too
+- That if the host plugin update has not run yet, they should run it too to refresh the installable wrapper/skill surface

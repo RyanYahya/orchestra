@@ -43,14 +43,32 @@ trap '[[ -n "$CLEANUP" ]] && rm -rf "$CLEANUP"' EXIT
 
 cd "$TARGET"
 
-cp_flag="-n"
-[[ "$FORCE" == "1" ]] && cp_flag=""
+copy_dir_to_parent() {
+  local src="$1" parent="$2" name dest
+  name="$(basename "$src")"
+  dest="$parent/$name"
+
+  if [[ "$FORCE" == "1" ]]; then
+    rm -rf "$dest"
+    cp -R "$src" "$parent/"
+  elif [[ -e "$dest" ]]; then
+    echo "→ preserving existing $dest"
+  else
+    cp -R "$src" "$parent/"
+  fi
+}
 
 echo "→ installing core into .orchestra/"
-mkdir -p .orchestra/workflows/{active,current,archived}
-cp -R $cp_flag "$SOURCE_DIR/prompts" .orchestra/
-cp -R $cp_flag "$SOURCE_DIR/scripts" .orchestra/
+mkdir -p .orchestra/workflows/{active,current,archived} .orchestra/agents
+copy_dir_to_parent "$SOURCE_DIR/prompts" .orchestra
+copy_dir_to_parent "$SOURCE_DIR/scripts" .orchestra
 chmod +x .orchestra/scripts/phase-runner.sh .orchestra/scripts/orchestra/*.sh 2>/dev/null || true
+
+if [[ -d "$SOURCE_DIR/skills/orchestra" ]]; then
+  echo "→ installing Codex/Open Agent skill into .agents/skills/orchestra"
+  mkdir -p .agents/skills
+  copy_dir_to_parent "$SOURCE_DIR/skills/orchestra" .agents/skills
+fi
 
 # Per-tool adapters
 install_adapter() {
@@ -58,7 +76,11 @@ install_adapter() {
   if [[ -e "$detect" ]]; then
     echo "→ detected $label — installing adapter into $dest"
     mkdir -p "$dest"
-    cp -R $cp_flag "$SOURCE_DIR/$src/." "$dest/"
+    if [[ "$FORCE" == "1" ]]; then
+      cp -R "$SOURCE_DIR/$src/." "$dest/"
+    else
+      cp -R -n "$SOURCE_DIR/$src/." "$dest/" 2>/dev/null || true
+    fi
   fi
 }
 
@@ -73,7 +95,11 @@ install_adapter ".cursor"   "adapters/cursor/commands"                   ".curso
 # Append AGENTS.md / CLAUDE.md / GEMINI.md / .cursorrules pointer
 POINTER="## Orchestration
 
-Workflows live in \`.orchestra/\`. To plan, execute, audit, or archive a task, follow the prompts in \`.orchestra/prompts/<name>.md\`. State persists in \`.orchestra/workflows/current/\`. Multiple AI tools may be active on this repo simultaneously — they share the same workflow state."
+Workflows live in \`.orchestra/\`. To plan, execute, audit, or archive a task, follow the prompts in \`.orchestra/prompts/<name>.md\`. State persists in \`.orchestra/workflows/current/\`. Multiple AI tools may be active on this repo simultaneously — they share the same workflow state.
+
+Claude Code: use \`/orchestra:<command>\`. Codex: use the repo-scoped \`\$orchestra\` skill, natural language like \"orchestra execute\", or the installed \`/orchestra <command>\` prompt adapter when available.
+
+Do not edit \`.orchestra/workflows/current/\` by hand unless the active Orchestra prompt tells you to. Respect \`.orchestra/workflows/current/.lock\`; if another actor holds it, report the holder instead of taking over silently."
 
 append_if_missing() {
   local file="$1"
@@ -105,4 +131,5 @@ echo
 echo "✓ orchestra installed"
 echo "  core: .orchestra/"
 echo "  prompts: $(ls .orchestra/prompts/ | wc -l | tr -d ' ') files"
-echo "  next: run /orchestra:plan <task> (Claude Code) or /plan <task> (other tools)"
+echo "  skill: .agents/skills/orchestra"
+echo "  next: run /orchestra:plan <task> in Claude Code, or \$orchestra plan <task> in Codex"

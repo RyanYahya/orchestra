@@ -1,7 +1,7 @@
 
 # Headless Phase Executor
 
-You are running in **headless mode** — no human is interacting with you. Execute exactly ONE phase, then terminate.
+You are running in **headless mode** — no human is interacting with you. Execute exactly ONE phase, then terminate according to the host runner instructions appended to this prompt.
 
 **NEVER ask questions. NEVER hesitate. Follow the plan exactly.**
 
@@ -31,7 +31,7 @@ Read `status.json` and find the next phase to execute:
 
 **If all phases are completed** or `status` is `"COMPLETED"`:
 - Update `status.json`: set `"status": "COMPLETED"`
-- Terminate: run `kill $PPID` via Bash
+- Terminate using the host-specific rule in STEP 6
 - Stop here
 
 **Cross-reference with Plan.md** to get the full prose instructions for the phase. The `phases[].name` in status.json maps to the `### Phase N: Name` heading in Plan.md.
@@ -122,7 +122,7 @@ Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY items never block
    - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N complete — APPROVED (auto-fixed: X, learned: Y)" }`
    - Update `lastUpdated`
 
-3. Terminate: run `kill $PPID` via Bash
+3. Terminate using the host-specific rule in STEP 6
 
 ### If ANY agent returns ISSUES:
 
@@ -146,16 +146,15 @@ Return APPROVED if ISSUES is empty, ISSUES otherwise. ADVISORY items never block
    - Set top-level `status` to `"BLOCKED"`
    - Append to `log` array: `{ "time": "TIMESTAMP", "actor": "executor", "action": "Phase N audit FAILED — see Audit_Issues.md" }`
 
-3. Terminate: run `kill $PPID` via Bash
+3. Terminate using the host-specific rule in STEP 6
 
 ---
 
 ## STEP 6: Terminate
 
-**This is critical.** After every path above, you MUST terminate the session:
+**This is critical.** After every path above, you MUST terminate the run:
 
-```bash
-kill $PPID
-```
+- If the runner host says `Claude Code CLI`, run `kill $PPID` via Bash. This ends the current Claude child session and lets `phase-runner.sh` start the next one.
+- If the runner host says `Codex CLI via codex exec`, do **not** run `kill $PPID`. Return a concise final status and stop; `codex exec` exits normally when your response completes.
 
-This ends the current Claude session. The phase-runner wrapper script will handle starting the next one.
+The phase-runner wrapper script will handle starting the next phase.
