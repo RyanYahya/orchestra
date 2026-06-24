@@ -6,7 +6,9 @@ Run this once per project. It installs `.orchestra/` (prompts, scripts, phase-ru
 
 ## Step 1: Bootstrap
 
-Run:
+**First, note which tool you (the agent) are running in.** Slash adapters auto-install only for tools whose config dir already exists (`.claude/`, `.codex/`, `.gemini/`, `.cursor/`). Cursor especially is often used with no `.cursor/` dir — so if you are running inside Cursor or Gemini and its dir is absent, append `--with <tool>` (e.g. `--with cursor`, or several: `--with cursor,gemini`) to the `install.sh` line below so your current tool gets its commands.
+
+Run (append `--with <your-host>` to the last line only if your tool's dir is absent):
 
 ```
 bash -c '
@@ -27,7 +29,7 @@ This:
 - Installs bundled Codex/Open Agent skills under `.agents/skills/`
 - Adds a pointer line to `CLAUDE.md` / `AGENTS.md` / `GEMINI.md` / `.cursorrules` (whichever exists; creates `AGENTS.md` if none)
 - Adds `.orchestra/workflows/current/` to `.gitignore`
-- Detects which tools are installed (`.claude/`, `.codex/`, `.gemini/`, `.cursor/`) and drops their slash command adapters
+- Detects which tools are installed (`.claude/`, `.codex/`, `.gemini/`, `.cursor/`) and drops their slash command adapters — plus any tool named in `--with`, even if its dir was absent
 
 Idempotent — running it again preserves existing files and fills in missing adapters/skills.
 
@@ -45,6 +47,7 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 - `/orchestra:revise` — revise the plan mid-execution if reality diverges
 - `/orchestra:archive` — archive the workflow when finished
 - `/orchestra:simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
+- `/orchestra:thermonuclear-review [scope]` — deep, plan-aware, adversarially-verified review on demand
 
 **Inside Codex:**
 - `$orchestra plan <task>` — start an interactive planning workflow
@@ -52,10 +55,12 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 - `$orchestra execute` — execute the plan phase-by-phase, with audits
 - `$orchestra resolve`, `$orchestra revise`, `$orchestra archive` — workflow utilities
 - `$simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
+- `$orchestra thermonuclear-review [scope]` — deep, plan-aware, adversarially-verified review on demand
 - If `.codex/prompts/` adapters are installed, `/orchestra plan <task>`, `/orchestra execute`, and `/simplify` are compatibility aliases.
 
 **Inside Gemini / Cursor:**
-- Same commands without the `orchestra:` prefix where that host's command adapter supports it (e.g. `/plan`, `/execute`, `/simplify`).
+- Same commands without the `orchestra:` prefix (e.g. `/plan`, `/execute`, `/simplify`, `/thermonuclear-review`).
+- These appear only if that tool's adapters were installed. Cursor needs a `.cursor/` dir at bootstrap — if its commands are missing, re-run Step 1 with `--with cursor`, then reload Cursor so it re-scans its command list.
 
 **Autonomous execution (terminal):**
 ```

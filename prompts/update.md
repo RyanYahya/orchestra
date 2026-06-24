@@ -9,6 +9,8 @@ When to run:
 
 Safe to run anytime — it never touches `workflows/active/`, `workflows/current/`, or `workflows/archived/`.
 
+Adapters refresh only for tools whose config dir already exists. If a tool's slash commands are missing — commonly Cursor, which is often used without a `.cursor/` dir — create its command dir first so this refresh installs them: `mkdir -p .cursor/commands` (or `.gemini/commands`), then run the update. Reload the tool afterward so it re-scans its command list.
+
 ---
 
 ## Step 1: Update

@@ -97,6 +97,8 @@ Once bootstrapped, the following commands are available:
 
 In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke the same command names through `$orchestra plan`, `$orchestra execute`, etc. Use `$simplify` for the cleanup-only review pass. The Codex prompt adapter also includes `/orchestra <command>` and `/simplify` compatibility aliases when `.codex/prompts/` wrappers are installed.
 
+**Per-tool command surfaces:** slash adapters install only for tools whose config dir is present at bootstrap (`.claude/`, `.codex/`, `.gemini/`, `.cursor/`). Cursor is frequently used without a `.cursor/` dir — if its commands don't show up, bootstrap with `install.sh --with cursor` (or create `.cursor/commands` and re-run `/orchestra:update`), then reload Cursor so it re-scans. The same `--with <tool>` forces any adapter you want regardless of detection.
+
 ## Autonomous execution
 
 For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside an interactive agent session, since it spawns child CLI processes):

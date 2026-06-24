@@ -7,10 +7,12 @@ set -euo pipefail
 FORCE=0
 SOURCE_DIR=""
 TARGET="$(pwd)"
+WITH_TOOLS=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --force) FORCE=1; shift ;;
+    --with) WITH_TOOLS="$2"; shift 2 ;;
     --source) SOURCE_DIR="$2"; shift 2 ;;
     --target) TARGET="$2"; shift 2 ;;
     -h|--help)
@@ -21,6 +23,9 @@ Usage: install.sh [--source <repo path or url>] [--target <project dir>] [--forc
              the script clones to a temp dir.
   --target   Project root to install into. Defaults to current directory.
   --force    Overwrite existing files in .orchestra/ and adapter dirs.
+  --with     Comma-separated tools to install slash-command adapters for even
+             if their config dir is absent: claude-code,codex,gemini,cursor.
+             Useful for Cursor, which is often used without a .cursor/ dir.
 EOF
       exit 0 ;;
     *) echo "unknown arg: $1" >&2; exit 1 ;;
@@ -79,9 +84,15 @@ fi
 
 # Per-tool adapters
 install_adapter() {
-  local detect="$1" src="$2" dest="$3" label="$4"
-  if [[ -e "$detect" ]]; then
-    echo "→ detected $label — installing adapter into $dest"
+  local key="$1" detect="$2" src="$3" dest="$4" label="$5"
+  local forced=0
+  case ",$WITH_TOOLS," in *",$key,"*) forced=1 ;; esac
+  if [[ -e "$detect" || "$forced" == "1" ]]; then
+    if [[ "$forced" == "1" && ! -e "$detect" ]]; then
+      echo "→ forcing $label adapter (--with $key) into $dest"
+    else
+      echo "→ detected $label — installing adapter into $dest"
+    fi
     mkdir -p "$dest"
     if [[ "$FORCE" == "1" ]]; then
       cp -R "$SOURCE_DIR/$src/." "$dest/"
@@ -91,10 +102,10 @@ install_adapter() {
   fi
 }
 
-install_adapter ".claude"   "adapters/claude-code/commands/orchestra" ".claude/commands/orchestra" "Claude Code"
-install_adapter ".codex"    "adapters/codex/prompts"                     ".codex/prompts"                 "Codex CLI"
-install_adapter ".gemini"   "adapters/gemini/commands"                   ".gemini/commands"               "Gemini CLI"
-install_adapter ".cursor"   "adapters/cursor/commands"                   ".cursor/commands"               "Cursor"
+install_adapter "claude-code" ".claude" "adapters/claude-code/commands/orchestra" ".claude/commands/orchestra" "Claude Code"
+install_adapter "codex"       ".codex"  "adapters/codex/prompts"                  ".codex/prompts"            "Codex CLI"
+install_adapter "gemini"      ".gemini" "adapters/gemini/commands"                ".gemini/commands"          "Gemini CLI"
+install_adapter "cursor"      ".cursor" "adapters/cursor/commands"                ".cursor/commands"          "Cursor"
 
 # If no tool surface detected, still leave the .orchestra/ core in place
 # and tell the user to invoke prompts manually.
