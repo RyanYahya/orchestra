@@ -16,6 +16,7 @@ When the user asks for an Orchestra action, read the matching prompt completely 
 - `execute` -> `.orchestra/prompts/execute.md`
 - `execute-headless` -> `.orchestra/prompts/execute-headless.md`
 - `thermonuclear-review` -> `.orchestra/prompts/thermonuclear-review.md`
+- `sync-agents` -> `.orchestra/prompts/sync-agents.md`
 - `revise` -> `.orchestra/prompts/revise.md`
 - `resolve` -> `.orchestra/prompts/resolve.md`
 - `docs-sync` -> `.orchestra/prompts/docs-sync.md`

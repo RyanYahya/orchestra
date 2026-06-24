@@ -48,6 +48,7 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 - `/orchestra:archive` — archive the workflow when finished
 - `/orchestra:simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
 - `/orchestra:thermonuclear-review [scope]` — deep, plan-aware, adversarially-verified review on demand
+- `/orchestra:sync-agents` — symlink the project's specialist agents into each tool so they're discovered natively
 
 **Inside Codex:**
 - `$orchestra plan <task>` — start an interactive planning workflow
@@ -56,6 +57,7 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 - `$orchestra resolve`, `$orchestra revise`, `$orchestra archive` — workflow utilities
 - `$simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
 - `$orchestra thermonuclear-review [scope]` — deep, plan-aware, adversarially-verified review on demand
+- `$orchestra sync-agents` — symlink the project's specialist agents into each tool so they're discovered natively
 - If `.codex/prompts/` adapters are installed, `/orchestra plan <task>`, `/orchestra execute`, and `/simplify` are compatibility aliases.
 
 **Inside Gemini / Cursor:**

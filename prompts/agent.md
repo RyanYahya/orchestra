@@ -106,6 +106,7 @@ You are a [domain] expert. Provide accurate, up-to-date guidance on [domain].
 Report:
 
 - Path created: `.orchestra/agents/[name].md`
+- Run `/orchestra:sync-agents` (or `bash .orchestra/scripts/orchestra/sync-agents.sh`) so the new agent is symlinked into `.claude/agents/`, `.codex/agents/`, and `.cursor/agents/` and discoverable natively by each tool
 - How to invoke: `Task([agent-name]): your question`
 - Context7 library IDs discovered
 - Expertise areas covered

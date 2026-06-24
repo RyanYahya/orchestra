@@ -1,0 +1,6 @@
+description = "Symlink .orchestra/agents specialists into Claude/Codex/Cursor so each tool discovers them natively"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/sync-agents.md.
+
+Arguments: {{args}}
+"""
