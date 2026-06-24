@@ -88,6 +88,7 @@ Read each selected or inferred agent file (e.g., `Read .orchestra/agents/codebas
 
 - **Claude Code:** use the Task/subagent mechanism with the selected `.orchestra/agents/*` specialists.
 - **Codex:** use `multi_agent_v1.spawn_agent` for each audit lane. If the spawn tool is not visible, use tool discovery for "multi-agent spawn subagent", then spawn the agents. The user's request to run Orchestra is explicit authorization to use subagents for mandatory phase audits.
+- **Cursor (2.4+):** use the **Task tool** to launch one audit subagent per lane **in parallel, in a single message**; name each lane and set `readonly: true`. Cursor auto-discovers subagents in `.cursor/agents/`, `.claude/agents/`, and `.codex/agents/` but **not** `.orchestra/agents/`, so read the relevant `.orchestra/agents/*` specialist and pass its instructions inline. Cursor has a real subagent mechanism — do not treat it as a host lacking one.
 - If there are no matching specialist agents, spawn at least one general implementation-audit agent.
 - After spawning, wait for every audit agent to finish and collect their verdicts before continuing to STEP 5.
 - If the host has no subagent mechanism available, do not self-approve. Write a blocking audit note to `.orchestra/workflows/current/Audit_Issues.md`, set top-level `status` to `"BLOCKED"`, log `"Phase N audit BLOCKED — subagent mechanism unavailable"`, and terminate via STEP 6.

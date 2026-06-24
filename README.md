@@ -93,6 +93,7 @@ Once bootstrapped, the following commands are available:
 | `docs-sync` | Sync project docs with the implemented changes |
 | `archive` | Move the current workflow to `archived/` and clear |
 | `simplify` | Cleanup-only diff review for reuse, simplification, efficiency, and altitude; then apply behavior-preserving fixes |
+| `thermonuclear-review` | Deep, plan-aware, adversarially-verified quality review on demand — Layer 2 on top of the per-phase audit |
 
 In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke the same command names through `$orchestra plan`, `$orchestra execute`, etc. Use `$simplify` for the cleanup-only review pass. The Codex prompt adapter also includes `/orchestra <command>` and `/simplify` compatibility aliases when `.codex/prompts/` wrappers are installed.
 

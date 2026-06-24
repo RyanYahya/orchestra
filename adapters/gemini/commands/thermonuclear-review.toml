@@ -1,0 +1,6 @@
+description = "Deep, plan-aware, adversarially-verified code-quality review on demand"
+prompt = """
+Read and follow the instructions in .orchestra/prompts/thermonuclear-review.md.
+
+Scope / arguments: {{args}}
+"""

@@ -36,6 +36,7 @@ Host dispatch:
 
 - **Claude Code:** use the Task/subagent mechanism.
 - **Codex:** use `multi_agent_v1.spawn_agent`. If the spawn tool is not visible, use tool discovery for "multi-agent spawn subagent", then spawn the agents. Use read-only `explorer` agents for the four review lanes.
+- **Cursor (2.4+):** use the **Task tool** to launch the four cleanup lanes as subagents **in parallel, in a single message**; name each lane and set `readonly: true`. If the Task mechanism isn't available, use the local-passes fallback below.
 - If the host truly has no subagent mechanism, perform four separate local passes with the same headings. Do not collapse the headings into one general review.
 
 ### Reuse

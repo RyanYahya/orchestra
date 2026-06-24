@@ -189,6 +189,7 @@ Host-specific dispatch:
 
 - **Claude Code:** use the Task/subagent mechanism with the relevant `.orchestra/agents/*` specialists.
 - **Codex:** use `multi_agent_v1.spawn_agent` for each audit lane. If the spawn tool is not currently visible, use tool discovery for "multi-agent spawn subagent", then spawn the agents. Prefer `explorer` agents for read-only audit lanes and `worker` only when the audit agent is explicitly asked to patch a bounded write set.
+- **Cursor (2.4+):** use the **Task tool** to launch one audit subagent per lane **in parallel, in a single message**; name each lane explicitly and set `readonly: true`. Cursor auto-discovers subagents in `.cursor/agents/`, `.claude/agents/`, and `.codex/agents/` but **not** `.orchestra/agents/`, so read the relevant `.orchestra/agents/*` specialist and pass its role/instructions inline. Pin a cheaper model to doc-checking lanes via the subagent `model` field. Cursor has a real subagent mechanism — do not treat it as a host lacking one.
 
 After spawning, wait for every audit agent to finish and collect their verdicts before continuing to Step 6c.
 
