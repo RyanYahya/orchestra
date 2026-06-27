@@ -18,6 +18,8 @@ bash "$TMP/install.sh" --source "$TMP" --target "$(pwd)"
 '
 ```
 
-After install, available commands in Codex: `$orchestra plan`, `$orchestra plan-advanced`, `$orchestra execute`, `$orchestra resolve`, `$orchestra revise`, `$orchestra archive`. If `.codex/prompts/` adapters are installed, `/orchestra plan` and `/orchestra execute` are compatibility aliases.
+After install, available commands in Codex: `$orchestra plan`, `$orchestra plan-advanced`, `$orchestra execute`, `$orchestra execute all`, `$orchestra resolve`, `$orchestra revise`, `$orchestra archive`. If `.codex/prompts/` adapters are installed, `/orchestra plan`, `/orchestra execute`, and `/orchestra execute all` are compatibility aliases.
 
-Autonomous: `bash .orchestra/scripts/phase-runner.sh --engine codex` from a terminal, or omit `--engine` to auto-select the available CLI.
+In-app autopilot: `$orchestra execute all`.
+
+Terminal autopilot: `bash .orchestra/scripts/phase-runner.sh --engine codex` from a terminal, or omit `--engine` to auto-select the available CLI.

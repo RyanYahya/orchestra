@@ -1,6 +1,6 @@
 {
   "name": "orchestra",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Plan, execute, audit, resolve, update, and archive shared AI coding workflows with persistent on-disk state.",
   "author": {
     "name": "RyanYahya"
@@ -22,6 +22,7 @@
       "$orchestra phase-runner",
       "$orchestra plan <task>",
       "$orchestra execute",
+      "$orchestra execute all",
       "$simplify [target]"
     ],
     "brandColor": "#10A37F"

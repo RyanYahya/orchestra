@@ -53,18 +53,22 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 **Inside Codex:**
 - `$orchestra plan <task>` — start an interactive planning workflow
 - `$orchestra plan-advanced <task>` — same, but with a relentless interview pass
-- `$orchestra execute` — execute the plan phase-by-phase, with audits
+- `$orchestra execute` — execute one phase, with audits
+- `$orchestra execute all` — Codex autopilot through every remaining phase, with verification, audit, and repair loops
 - `$orchestra resolve`, `$orchestra revise`, `$orchestra archive` — workflow utilities
 - `$simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
 - `$orchestra thermonuclear-review [scope]` — deep, plan-aware, adversarially-verified review on demand
 - `$orchestra sync-agents` — symlink the project's specialist agents into each tool so they're discovered natively
-- If `.codex/prompts/` adapters are installed, `/orchestra plan <task>`, `/orchestra execute`, and `/simplify` are compatibility aliases.
+- If `.codex/prompts/` adapters are installed, `/orchestra plan <task>`, `/orchestra execute`, `/orchestra execute all`, and `/simplify` are compatibility aliases.
 
 **Inside Gemini / Cursor:**
 - Same commands without the `orchestra:` prefix (e.g. `/plan`, `/execute`, `/simplify`, `/thermonuclear-review`).
 - These appear only if that tool's adapters were installed. Cursor needs a `.cursor/` dir at bootstrap — if its commands are missing, re-run Step 1 with `--with cursor`, then reload Cursor so it re-scans its command list.
 
 **Autonomous execution (terminal):**
+
+Inside the Codex app, use `$orchestra execute all` for in-app autopilot. The terminal runner below is for headless CLI loops.
+
 ```
 bash .orchestra/scripts/phase-runner.sh           # auto mode
 bash .orchestra/scripts/phase-runner.sh --manual  # pause between phases

@@ -41,14 +41,15 @@ After bootstrap, use:
 
 ```
 $orchestra plan <task>
-$orchestra execute
+$orchestra execute          # one phase
+$orchestra execute all      # Codex autopilot through every remaining phase
 $orchestra resolve
 $orchestra revise
 $orchestra archive
 $simplify [target]
 ```
 
-If `.codex/prompts/` adapters are installed in the project, `/orchestra plan <task>` and `/orchestra execute` are compatibility aliases. The `$orchestra` skill is the preferred Codex surface because Codex custom prompts are deprecated in favor of skills.
+If `.codex/prompts/` adapters are installed in the project, `/orchestra plan <task>`, `/orchestra execute`, and `/orchestra execute all` are compatibility aliases. The `$orchestra` skill is the preferred Codex surface because Codex custom prompts are deprecated in favor of skills.
 
 ### Updating
 
@@ -85,7 +86,8 @@ Once bootstrapped, the following commands are available:
 | `update` | Pull the latest prompts, scripts, and bundled skills from GitHub (workflows preserved) |
 | `plan` | Research codebase, draft plan, validate against docs |
 | `plan-advanced` | Same as `plan` plus a relentless interview pass — walks the decision tree one question at a time |
-| `execute` | Walk the plan phase-by-phase, with self-review and audits each phase |
+| `execute` | Execute one phase at a time, with self-review and audits |
+| `execute all` | Codex-only autopilot: execute every remaining phase without between-phase approval |
 | `execute-headless` | Execute one phase headlessly (driven by `phase-runner.sh`) |
 | `revise` | Revise the plan mid-execution when reality diverges |
 | `agent` | Dispatch a specialized sub-agent against the workflow |
@@ -96,11 +98,13 @@ Once bootstrapped, the following commands are available:
 | `thermonuclear-review` | Deep, plan-aware, adversarially-verified quality review on demand — Layer 2 on top of the per-phase audit |
 | `sync-agents` | Symlink the project's `.orchestra/agents/` specialists into `.claude/`, `.codex/`, and `.cursor/` so every tool discovers them natively |
 
-In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke the same command names through `$orchestra plan`, `$orchestra execute`, etc. Use `$simplify` for the cleanup-only review pass. The Codex prompt adapter also includes `/orchestra <command>` and `/simplify` compatibility aliases when `.codex/prompts/` wrappers are installed.
+In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke the same command names through `$orchestra plan`, `$orchestra execute`, `$orchestra execute all`, etc. Use `$simplify` for the cleanup-only review pass. The Codex prompt adapter also includes `/orchestra <command>` and `/simplify` compatibility aliases when `.codex/prompts/` wrappers are installed.
 
 **Per-tool command surfaces:** slash adapters install only for tools whose config dir is present at bootstrap (`.claude/`, `.codex/`, `.gemini/`, `.cursor/`). Cursor is frequently used without a `.cursor/` dir — if its commands don't show up, bootstrap with `install.sh --with cursor` (or create `.cursor/commands` and re-run `/orchestra:update`), then reload Cursor so it re-scans. The same `--with <tool>` forces any adapter you want regardless of detection.
 
 ## Autonomous execution
+
+Inside the Codex app, prefer `$orchestra execute all` for in-app autopilot. The terminal runner below remains the tool-agnostic headless loop for Claude Code or Codex CLI.
 
 For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside an interactive agent session, since it spawns child CLI processes):
 

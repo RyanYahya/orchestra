@@ -38,7 +38,7 @@ If the script exits non-zero, another actor is already driving the workflow. **S
 
 **If Start Executing:**
 
-- Tell the user: "Run `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex to begin phase-by-phase implementation."
+- Tell the user: "Run `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex to execute one phase at a time. In Codex, use `$orchestra execute all` for autonomous execution through every remaining phase."
 
 ### If NO_ACTIVE_WORKFLOW:
 
@@ -216,4 +216,4 @@ bash .orchestra/scripts/orchestra/log-event.sh planner "Plan approved — ready 
 bash .orchestra/scripts/orchestra/unlock.sh planner
 ```
 
-Tell the user the next step: `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex for interactive phase-by-phase execution, or `bash .orchestra/scripts/phase-runner.sh` for autonomous execution.
+Tell the user the next step: `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex for single-phase execution. In Codex, `$orchestra execute all` runs every remaining phase in-app; `bash .orchestra/scripts/phase-runner.sh` remains the terminal headless loop.

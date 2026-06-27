@@ -37,7 +37,7 @@ If non-zero, another actor holds it. Report the holder and stop.
 1. Read `status.json` and `Plan.md`
 2. Ask: **Continue Planning (Interview)** or **Start Executing**
 3. If continuing → jump to PHASE 5 (Design Tree Walk)
-4. If executing → tell user to run `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex
+4. If executing → tell user to run `/orchestra:execute` in Claude Code or `$orchestra execute` in Codex for one phase, or `$orchestra execute all` in Codex for autopilot
 
 ### If NO_ACTIVE_WORKFLOW:
 
@@ -188,4 +188,4 @@ bash .orchestra/scripts/orchestra/log-event.sh planner-advanced "Plan approved v
 bash .orchestra/scripts/orchestra/unlock.sh planner-advanced
 ```
 
-Tell the user: `/orchestra:execute` in Claude Code, `$orchestra execute` in Codex, or `bash .orchestra/scripts/phase-runner.sh`.
+Tell the user: `/orchestra:execute` in Claude Code, `$orchestra execute` in Codex for one phase, `$orchestra execute all` in Codex for in-app autopilot, or `bash .orchestra/scripts/phase-runner.sh` for the terminal loop.

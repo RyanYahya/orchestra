@@ -115,7 +115,7 @@ POINTER="## Orchestration
 
 Workflows live in \`.orchestra/\`. To plan, execute, audit, or archive a task, follow the prompts in \`.orchestra/prompts/<name>.md\`. State persists in \`.orchestra/workflows/current/\`. Multiple AI tools may be active on this repo simultaneously — they share the same workflow state.
 
-Claude Code: use \`/orchestra:<command>\`. Codex: use the repo-scoped \`\$orchestra\` skill, \`\$simplify\` for cleanup-only review, natural language like \"orchestra execute\", or the installed \`/orchestra <command>\` / \`/simplify\` prompt adapters when available.
+Claude Code: use \`/orchestra:<command>\`. Codex: use the repo-scoped \`\$orchestra\` skill, \`\$orchestra execute all\` for Codex-only autonomous execution through every remaining phase, \`\$simplify\` for cleanup-only review, natural language like \"orchestra execute\", or the installed \`/orchestra <command>\` / \`/simplify\` prompt adapters when available.
 
 Do not edit \`.orchestra/workflows/current/\` by hand unless the active Orchestra prompt tells you to. Respect \`.orchestra/workflows/current/.lock\`; if another actor holds it, report the holder instead of taking over silently."
 
@@ -150,4 +150,4 @@ echo "✓ orchestra installed"
 echo "  core: .orchestra/"
 echo "  prompts: $(ls .orchestra/prompts/ | wc -l | tr -d ' ') files"
 echo "  skills: .agents/skills"
-echo "  next: run /orchestra:plan <task> in Claude Code, or \$orchestra plan <task> in Codex; use \$simplify for cleanup-only review"
+echo "  next: run /orchestra:plan <task> in Claude Code, or \$orchestra plan <task> in Codex; use \$orchestra execute all for Codex autopilot and \$simplify for cleanup-only review"
