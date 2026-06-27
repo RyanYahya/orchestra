@@ -187,14 +187,18 @@ for ((PHASE=1; PHASE<=MAX_PHASES; PHASE++)); do
     break
   fi
 
-  # Check if workflow is blocked (audit failure)
+  # Check if workflow is blocked (emergency only: see execute-headless "Run-to-completion policy")
   if [[ "$STATUS" == "BLOCKED" ]]; then
     divider
-    log "WORKFLOW BLOCKED — audit issues need resolution"
+    log "WORKFLOW BLOCKED — emergency stop (infra failure or red verify build)"
     divider
     echo ""
-    echo "The workflow is blocked due to audit failures."
-    echo "Review the issues:  cat $WORKFLOW_DIR/Audit_Issues.md"
+    echo "The runner halted on a genuine emergency — almost always a phase whose"
+    echo "verify command stayed red after the fix budget, or an infra issue."
+    echo "Non-emergency findings do NOT block; they are logged for later in:"
+    echo "  cat $WORKFLOW_DIR/Deferred_Issues.md   2>/dev/null"
+    echo "Emergency detail (if written):"
+    echo "  cat $WORKFLOW_DIR/Audit_Issues.md       2>/dev/null"
     echo ""
     echo "To fix interactively:"
     if [[ "$ENGINE" == "claude" ]]; then
@@ -276,16 +280,31 @@ log "Phases completed: $PHASES_COMPLETED"
 log "Total time: ${MINUTES}m ${SECONDS}s"
 log "Log file: $LOG_FILE"
 
+# Deferred issues (non-emergency findings logged during the run)
+DEFERRED_FILE="$WORKFLOW_DIR/Deferred_Issues.md"
+if [ -f "$DEFERRED_FILE" ]; then
+  DEFERRED_COUNT=$(grep -c '^## ' "$DEFERRED_FILE" 2>/dev/null || true)
+  DEFERRED_COUNT=${DEFERRED_COUNT:-0}
+  if [[ "$DEFERRED_COUNT" -gt 0 ]]; then
+    log "Deferred issues logged: $DEFERRED_COUNT — see $DEFERRED_FILE"
+    log "  Resolve with: /orchestra:resolve or /orchestra:thermonuclear-review"
+  fi
+fi
+
 # Final status
 STATUS=$(get_status)
 if [[ "$STATUS" == "COMPLETED" ]]; then
   log "Result: SUCCESS — all phases completed"
   if [ -f "$NOTIFY_SCRIPT" ]; then
-    bash "$NOTIFY_SCRIPT" "Workflow complete! All phases finished."
+    if [[ "${DEFERRED_COUNT:-0}" -gt 0 ]]; then
+      bash "$NOTIFY_SCRIPT" "Workflow complete! ${DEFERRED_COUNT} deferred issue(s) to review."
+    else
+      bash "$NOTIFY_SCRIPT" "Workflow complete! All phases finished."
+    fi
   fi
 elif [[ "$STATUS" == "BLOCKED" ]]; then
-  log "Result: BLOCKED — audit issues need resolution"
-  log "See: $WORKFLOW_DIR/Audit_Issues.md"
+  log "Result: BLOCKED — emergency stop (infra failure or red verify build)"
+  log "See: $WORKFLOW_DIR/Audit_Issues.md and $WORKFLOW_DIR/Deferred_Issues.md"
 elif [ "$PHASE" -gt "$MAX_PHASES" ]; then
   log "Result: SAFETY LIMIT — hit max phase limit ($MAX_PHASES)"
   if [ -f "$NOTIFY_SCRIPT" ]; then

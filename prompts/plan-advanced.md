@@ -102,9 +102,11 @@ Do not move on until every branch is resolved or explicitly deferred (mark defer
 
 Edit `.orchestra/workflows/current/Plan.md`.
 
+**Write for an autonomous, possibly-weaker executor.** This plan may be run end-to-end by `phase-runner.sh` (or `$orchestra execute all`) with no human in the loop and no pause for questions, possibly by a cheaper model. The executor applies what's written and defers what it can't resolve — it won't interpret, choose, or research. All the interview rigor you just did must land *in the plan* as specificity, so a faithful literal execution can't make the code worse. Where you'd expect the executor to decide, **bake the decision into the step** as a pre-authorized default ("if X, do Y").
+
 ### Assumptions block (write before phases)
 
-Surface every non-trivial premise the plan rests on. Tag each as `[verified]` (you actually checked) or `[untested]` (you're guessing — the executor will surface these at phase start). Example:
+Surface every non-trivial premise the plan rests on. Tag each as `[verified]` (you actually checked) or `[untested]` (you're guessing). Example:
 
 ```markdown
 ## Assumptions
@@ -113,30 +115,36 @@ Surface every non-trivial premise the plan rests on. Tag each as `[verified]` (y
 - [untested] The `useUser` hook returns `null` when logged out — assumed but not confirmed.
 ```
 
-Assumptions are advisory; they don't block execution. They prevent the most common failure mode: plan looked right but rested on a wrong premise.
+**Verify assumptions now, at plan time.** The autonomous executor won't pause to catch a wrong premise, so `[untested]` items should be near-zero by approval — do the cheap check while planning and upgrade to `[verified]`, or ask the user in PHASE 8. Any `[untested]` item that survives approval is a risk the user has explicitly accepted.
 
 ### Phase format (strict)
 
 ```markdown
 ### Phase 1: Phase Name
 
+**Intent:** Why this phase exists and what "done well" looks like — the outcome a reviewer checks for. One or two sentences.
+
 **Steps:**
-1. First step (file: `path/to/file.ts`, action: create|modify)
-2. Second step (file: `path/to/other.ts`, action: modify)
+1. In `path/to/file.ts`, inside `handleAuth()` (just after `const session = ...`), add a `retries: number` param and pass it to `fetchWithRetry(...)`. Update both call sites: `path/to/caller.ts`, `path/to/other.ts`. _(see D003)_ (file: `path/to/file.ts`, `path/to/caller.ts`, `path/to/other.ts`, action: modify)
+2. Create the `RetryConfig` type — `{ retries: number; backoffMs: number }` — mirroring `path/to/example.ts:40-60`. If field naming is ambiguous, default to `camelCase` to match that file. (file: `path/to/config.ts`, action: create)
+
+**Avoid:** Anti-patterns and out-of-scope edits for this phase — what NOT to touch. e.g. "Do not refactor `legacyHandler`; do not add caching; do not reformat untouched lines."
 
 **Verify:**
 - Manual: Human verification steps
-- Auto: `optional-shell-command`
+- Auto: `runnable-command`
 ```
 
 Rules:
 - `### Phase N:` headings, numbered
-- Steps under `**Steps:**` as numbered list
+- **`**Intent:**` (required)** after the heading; **`**Avoid:**` (required)** after `**Steps:**`, before `**Verify:**`. Intent is the done-condition; Avoid is the rail against gold-plating and drive-by edits.
+- Steps under `**Steps:**` as numbered list. **Anchor every step** to the exact file AND location (symbol / "just after X" / `file.ts:40-60`) and the exact change — never "update the handler."
+- **Specify full signatures and every call site** for any new/changed function, type, or API. **Embed the reference** (`path:line` to mirror, or the exact snippet from `Implementation_Notes.md`) so the executor never re-researches. **Pre-authorize a default** for any residual ambiguity, written into the step.
 - Every implementation step must include `file: ` with one or more separate backticked paths so `commit-phase.sh --paths-from-plan` can create a scoped phase commit
-- `**Verify:**` block with `- Manual:` (required), `- Auto:` (optional)
+- `**Verify:**` block with `- Manual:` (required), `- Auto:` (strongly preferred — give every phase a runnable command wherever the tooling allows; a red `Auto:` verify is the one quality failure that halts the autonomous run)
 - Reference decision IDs inline where a step embodies a decision: `_(see D003)_`
 - NO checkboxes, NO speculative tests, NO rollback/back-compat unless asked, NO assumed fallbacks
-- Keep the plan minimal: every step should trace to the user's request. No drive-by cleanup, no speculative abstractions.
+- Keep the plan minimal: every step should trace to the user's request. No drive-by cleanup, no speculative abstractions. (Execution folds in a behavior-preserving `/simplify` pass per phase, so don't pre-bake cleanup into steps.)
 
 **Detect the project's tooling before generating Auto verify commands.** Check lockfiles / manifests: `pnpm-lock.yaml` → `pnpm`, `yarn.lock` → `yarn`, `bun.lockb` → `bun`, `package-lock.json` → `npm run`, `Cargo.toml` → `cargo`, `go.mod` → `go`, `pyproject.toml` (poetry/uv) accordingly, `Gemfile` → `bundle exec`, etc. Read the manifest to find the actual script name; don't invent one. Omit the `- Auto:` line if no usable script exists.
 
@@ -181,6 +189,14 @@ If concerns: edit Plan.md, re-run `parse-plan.sh`, present changes.
 ---
 
 ## PHASE 10: Finalize
+
+**Readiness gate — do NOT set `planApproved: true` until all hold:**
+
+1. Every decision in `decisions.json` has an `answer` (PHASE 7 should have closed these) — no implicit choices remain.
+2. Every `[untested]` assumption is verified, or the user explicitly accepted its risk.
+3. Every phase has `**Intent:**`, `**Avoid:**`, anchored steps with signatures/call-sites, and an `**Auto:**` verify wherever tooling supports one.
+
+If any fail, fix the plan (re-run `parse-plan.sh`) or loop back to PHASE 5 before finalizing.
 
 ```
 jq '.status = "READY" | .planApproved = true' .orchestra/workflows/current/status.json > /tmp/orch.status && mv /tmp/orch.status .orchestra/workflows/current/status.json

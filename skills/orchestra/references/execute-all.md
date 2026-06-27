@@ -25,6 +25,12 @@ Use Codex native surfaces when available, but only as mirrors:
 - Do not use a Codex goal as workflow state. Goals are session-level; `.orchestra/` is workflow-level.
 - Do not rely on manual compaction. After every phase, append a short durable recap to `.orchestra/workflows/current/Phase_Summaries.md`.
 
+## Run-to-completion policy
+
+The whole point of `execute all` is to finish the entire plan in one unattended run. **Default to defer-and-continue, not to stopping.** When something is imperfect — an audit finding you can't fully resolve, a wrong-but-recoverable assumption, a manual check you can't confirm, a commit you can't scope cleanly — do your best within the phase's scope, append the residual to `.orchestra/workflows/current/Deferred_Issues.md`, and let the phase complete. The user resolves deferred items after the full run.
+
+`Deferred_Issues.md` entry format: `## [Phase Pn] <title> — severity: low|med|high`, then `Category`, `What`, `Best-effort taken`, and `Suggested resolution` lines.
+
 ## Hard Stops
 
 Stop without asking the user only when continuing would be unsafe or impossible:
@@ -32,10 +38,12 @@ Stop without asking the user only when continuing would be unsafe or impossible:
 - No active workflow exists.
 - `status.json.planApproved` is false.
 - The workflow lock is held by another actor.
-- Codex subagent spawning is unavailable, so the mandatory phase audit cannot run.
 - A required local command or file is missing and cannot be recreated from the installed Orchestra core.
-- Applying a fix would require destructive git operations, overwriting unrelated user changes, or expanding beyond the approved plan.
-- A phase still has blocking audit or verification failures after the retry budget is exhausted.
+- Applying a fix would require destructive git operations, or overwriting **uncommitted unrelated user changes**.
+- Forward progress is mechanically impossible — the next phase's prerequisites genuinely do not exist and cannot be produced in scope.
+- **A phase's auto-verify command stays red after the 3-try fix budget.** A confirmed-red build / typecheck / test run is the one quality failure that halts, because every later phase compounds on it.
+
+Codex subagent spawning being unavailable is **not** a hard stop: run a thorough self-review against the audit checklist, note it in `Deferred_Issues.md`, and continue. Residual **audit** issues are **not** a hard stop either — they defer. Only the cases above halt the run.
 
 If a hard stop happens, write a concise note to `.orchestra/workflows/current/Autopilot_Issues.md`, release the lock if you hold it, and report the issue. Do not prompt for a decision mid-run.
 
@@ -67,15 +75,15 @@ Run this loop until all phases are complete:
    ```bash
    bash .orchestra/scripts/orchestra/mark-step-done.sh <PHASE_ID> <STEP_ID> --actor codex-execute-all
    ```
-6. Run the phase's auto verification command when present. If it fails, fix within the phase scope and retry up to three times. If no auto verification exists, record `SKIP`.
+6. Run the phase's auto verification command when present. If it fails, fix within the phase scope and retry up to three times. If it stays red after the third attempt, that is the red-build hard stop: log the failing command and output to `Deferred_Issues.md`, write `Autopilot_Issues.md`, and stop. If no auto verification exists, record `SKIP`.
 7. For manual verification, perform the closest agent-driven equivalent you can: inspect the UI, run a smoke command, read generated output, or verify the changed behavior from code. If no meaningful substitute is possible, record manual verification as `SKIP`; do not stop for the user.
 8. Record verification:
    ```bash
    bash .orchestra/scripts/orchestra/record-verify.sh <PHASE_ID> --auto PASS|SKIP --manual PASS|SKIP --actor codex-execute-all
    ```
-9. Run self-review against the phase diff. Immediately fix cheap scope/simplicity/trace issues. Append recurring lessons to `Advisory_Notes.md`.
+9. Run self-review against the phase diff. Immediately fix cheap scope/simplicity/trace issues. Append recurring lessons to `Advisory_Notes.md`. Then run the mandatory **Simplify pass** over this phase's diff only — apply behavior-preserving reuse / simplification / efficiency / altitude fixes within the phase's file scope (no behavior, API, or out-of-scope changes; defer anything that would cross that line to `Deferred_Issues.md`).
 10. Run the mandatory spawned-agent audit. Use `.orchestra/audit-map.json` and `.orchestra/agents/` when present. In Codex, use `multi_agent_v1.spawn_agent`; if it is not visible, use tool discovery for "multi-agent spawn subagent".
-11. If the audit returns blocking issues, fix them within the phase scope and re-audit. Retry up to three full fix/audit cycles. Do not ask the user. If the third audit still has blocking issues, hard stop.
+11. If the audit returns blocking issues, fix them within the phase scope and re-audit. Retry up to three full fix/audit cycles. Do not ask the user. For any issue still unresolved after the budget, append a `Deferred_Issues.md` entry describing it and your best-effort attempt, then continue — residual audit issues do NOT hard stop (only a red build does).
 12. Record the final approved audit:
     ```bash
     bash .orchestra/scripts/orchestra/record-audit.sh <PHASE_ID> --approved --auto-fixed <N> --learned <N> --actor codex-execute-all
@@ -91,7 +99,7 @@ Run this loop until all phases are complete:
     ```
 15. Append a durable recap to `Phase_Summaries.md` with the phase id, files changed, verification result, audit result, commit SHA or commit-skip reason, and any advisory lesson.
 
-After the last phase, ensure `status.json.status` is `COMPLETED`, release the lock, and give the user a concise final summary.
+After the last phase, ensure `status.json.status` is `COMPLETED`, release the lock, and give the user a concise final summary — including the number of `Deferred_Issues.md` entries and the suggestion to resolve them with `$orchestra resolve` or `$orchestra thermonuclear-review`.
 
 ## Audit Prompt
 

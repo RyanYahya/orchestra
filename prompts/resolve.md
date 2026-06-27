@@ -1,13 +1,17 @@
 
-# Resolve Audit Issues
+# Resolve Audit & Deferred Issues
 
 ## Current Workflow (auto-loaded)
 
 !`cat .orchestra/workflows/current/status.json 2>/dev/null | jq '{task, status, currentPhase, totalPhases}' || echo "NO_ACTIVE_WORKFLOW"`
 
-## Audit Issues
+## Audit Issues (emergency stop)
 
 !`cat .orchestra/workflows/current/Audit_Issues.md 2>/dev/null || echo "NO_AUDIT_ISSUES"`
+
+## Deferred Issues (logged during an autonomous run)
+
+!`cat .orchestra/workflows/current/Deferred_Issues.md 2>/dev/null || echo "NO_DEFERRED_ISSUES"`
 
 ## Available Specialized Agents
 
@@ -17,15 +21,20 @@
 
 ## Your Instructions
 
+This command handles two post-run cleanup cases. Pick the branch that matches:
+
+- **Emergency stop** — `status` is `BLOCKED` with an `Audit_Issues.md` (a red verify build or an infra failure halted the run mid-plan). → STEP 1 below.
+- **Deferred items** — the autonomous runner reached the end of the plan but logged non-emergency findings to `Deferred_Issues.md` (the common case after `phase-runner.sh` / `$orchestra execute all`). → "Deferred Issues Flow" near the end.
+
 ### If NO_ACTIVE_WORKFLOW:
 
 Tell user: "No active workflow. Nothing to resolve."
 
 ### If NO_AUDIT_ISSUES:
 
-Check `status.json` status field:
-- If `BLOCKED` without an Audit_Issues.md → use AskUserQuestion: "Workflow is BLOCKED but no Audit_Issues.md found. What needs to be resolved?"
-- Otherwise → Tell user: "No audit issues to resolve. Workflow is not blocked."
+- If `Deferred_Issues.md` is present (not `NO_DEFERRED_ISSUES`) → go to **Deferred Issues Flow**.
+- Else if `status` is `BLOCKED` without an Audit_Issues.md → use AskUserQuestion: "Workflow is BLOCKED but no Audit_Issues.md found. What needs to be resolved?"
+- Otherwise → Tell user: "Nothing to resolve — no audit or deferred issues, and the workflow isn't blocked."
 
 ### If workflow is BLOCKED with audit issues:
 
@@ -176,3 +185,49 @@ If user chose to dismiss issues:
    ```
 
 3. Tell user the workflow is unblocked and they can resume execution.
+
+---
+
+## Deferred Issues Flow
+
+Use this when the run finished but `Deferred_Issues.md` accumulated non-emergency findings. The workflow is typically already `COMPLETED`, so there is no phase to unblock — this is pure cleanup, with the human in the loop.
+
+### D1: Load context
+
+Read `Deferred_Issues.md`, `Plan.md`, `Implementation_Notes.md`, and `Decisions.md`. Each deferred entry carries a phase, category, severity, what, best-effort already taken, and a suggested resolution.
+
+### D2: Present the ledger
+
+Show a single table, highest severity first:
+
+```markdown
+## Deferred issues from this run ([N] total)
+
+| # | Phase | Sev | Category | Issue | Suggested fix |
+|---|-------|-----|----------|-------|---------------|
+| 1 | P3 | high | audit | ... | ... |
+```
+
+Then use AskUserQuestion: "How would you like to work through these?"
+- **High-severity first** — triage the high-severity items, defer the rest
+- **All, one by one** — walk every item
+- **Pick specific items** — user names the numbers to address
+- **Dismiss all** — acknowledge and archive without changes
+
+### D3: Walk through chosen items one by one
+
+For each selected item, follow the same discipline as STEP 3 above: explain it, propose a scoped fix, ask the user to apply/alter/skip, implement, confirm. Stay strictly within the issue's scope — no drive-by refactors. If a fix touches code a phase verified, re-run that phase's `verify.auto` afterward.
+
+### D4: Re-audit changed files (if any fixes landed)
+
+If you changed code, spawn the relevant `.orchestra/agents/*` specialists (in parallel) over just the changed files, using the same audit prompt as execution. Apply or surface their findings as in STEP 3.
+
+### D5: Close out
+
+1. Archive the resolved ledger:
+   ```bash
+   mv .orchestra/workflows/current/Deferred_Issues.md .orchestra/workflows/current/Deferred_Issues_Resolved.md
+   ```
+   If the user only addressed some items, leave the unresolved entries in `Deferred_Issues.md` and archive nothing — only move the file when the ledger is empty.
+2. Log the resolution via `log-event.sh` (actor `resolver`).
+3. Suggest the user commit the cleanup, and — for a final quality gate — run `/orchestra:thermonuclear-review` (deep, plan-aware, adversarially-verified). This is the deliberate heavy review the deferred-and-continue model defers *to*.

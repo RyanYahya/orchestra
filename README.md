@@ -116,7 +116,7 @@ bash .orchestra/scripts/phase-runner.sh --engine claude
 bash .orchestra/scripts/phase-runner.sh --engine codex
 ```
 
-Each phase runs through plan → execute → self-review → external audit → commit. Advisory findings (over-engineering, drive-by edits, repeated patterns) auto-correct or accumulate in `Advisory_Notes.md` so subsequent phases learn from them — no human in the loop required.
+Each phase runs through execute → simplify → verify → external audit → commit. The runner is built to finish the whole plan in one unattended pass: it **defers** non-emergency findings to `Deferred_Issues.md` and keeps going, halting only on a genuine emergency or a verify build that stays red after its fix budget. Advisory findings (over-engineering, drive-by edits, repeated patterns) auto-correct or accumulate in `Advisory_Notes.md` so subsequent phases learn from them — no human in the loop required. After the run, work the deferred ledger with `/orchestra:resolve`, then run `/orchestra:thermonuclear-review` for the one deliberate heavy quality gate.
 
 ### Worktree safety
 
