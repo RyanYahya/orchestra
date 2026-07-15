@@ -1,6 +1,6 @@
 #!/bin/bash
 # Acquire workflow lock for a given actor.
-# Usage: bash .orchestra/scripts/orchestra/lock.sh <actor>
+# Usage: bash .orchestra/scripts/orchestra/lock.sh <actor> [--token <token>]
 # Exits 0 if lock acquired (or already ours), 1 if held by another actor.
 # Stale locks (older than ORCH_LOCK_TTL seconds, default 3600) auto-release.
 
@@ -10,6 +10,17 @@ SCRIPT_DIR="$(builtin cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/workflow-utils.sh"
 
 ACTOR="${1:-unknown}"
+shift || true
+TOKEN=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --token) TOKEN="${2:-}"; shift 2 ;;
+    -h|--help) echo "usage: lock.sh <actor> [--token <token>]"; exit 0 ;;
+    *) echo "ERROR: unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
+
 TTL="${ORCH_LOCK_TTL:-3600}"
 LOCK_FILE="$WORKFLOW_DIR/.lock"
 
@@ -19,9 +30,15 @@ NOW_EPOCH=$(date +%s)
 
 if [[ -f "$LOCK_FILE" ]]; then
   HELD_BY=$(jq -r '.actor // "unknown"' "$LOCK_FILE" 2>/dev/null || echo "unknown")
+  HELD_TOKEN=$(jq -r '.token // ""' "$LOCK_FILE" 2>/dev/null || echo "")
   STARTED_EPOCH=$(jq -r '.startedEpoch // 0' "$LOCK_FILE" 2>/dev/null || echo 0)
 
-  if [[ "$HELD_BY" != "$ACTOR" ]]; then
+  if [[ "$HELD_BY" == "$ACTOR" && "$HELD_TOKEN" == "$TOKEN" ]]; then
+    echo "lock already held: $ACTOR"
+    exit 0
+  fi
+
+  if [[ "$HELD_BY" != "$ACTOR" || "$HELD_TOKEN" != "$TOKEN" ]]; then
     AGE=$(( NOW_EPOCH - STARTED_EPOCH ))
     if [[ $AGE -lt $TTL ]]; then
       STARTED_HUMAN=$(jq -r '.started // ""' "$LOCK_FILE" 2>/dev/null || echo "")
@@ -36,6 +53,7 @@ fi
 cat > "$LOCK_FILE" <<EOF
 {
   "actor": "$ACTOR",
+  "token": "$TOKEN",
   "pid": $$,
   "started": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "startedEpoch": $NOW_EPOCH,

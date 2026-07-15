@@ -42,7 +42,7 @@ After bootstrap, use:
 ```
 $orchestra plan <task>
 $orchestra execute          # one phase
-$orchestra execute all      # Codex autopilot through every remaining phase
+$orchestra execute all      # Codex autopilot; fresh app task for each next phase
 $orchestra resolve
 $orchestra revise
 $orchestra archive
@@ -87,7 +87,7 @@ Once bootstrapped, the following commands are available:
 | `plan` | Research codebase, draft plan, validate against docs |
 | `plan-advanced` | Same as `plan` plus a relentless interview pass — walks the decision tree one question at a time |
 | `execute` | Execute one phase at a time, with self-review and audits |
-| `execute all` | Codex-only autopilot: execute every remaining phase without between-phase approval |
+| `execute all` | Codex-only autopilot: execute every remaining phase; in the app, hand each next phase to a fresh task |
 | `execute-headless` | Execute one phase headlessly (driven by `phase-runner.sh`) |
 | `revise` | Revise the plan mid-execution when reality diverges |
 | `agent` | Dispatch a specialized sub-agent against the workflow |
@@ -104,7 +104,7 @@ In Claude Code these are namespaced as `/orchestra:plan` etc. In Codex, invoke t
 
 ## Autonomous execution
 
-Inside the Codex app, prefer `$orchestra execute all` for in-app autopilot. The terminal runner below remains the tool-agnostic headless loop for Claude Code or Codex CLI.
+Inside the Codex app, prefer `$orchestra execute all` for in-app autopilot. Each completed phase hands the next phase to a fresh top-level task in the same saved local project, keeping context clean while `.orchestra/` carries the durable run state. If the app cannot preserve the exact local checkout, Orchestra safely continues in the current task. The terminal runner below remains the tool-agnostic headless loop for Claude Code or Codex CLI.
 
 For multi-phase autonomous runs, use the phase runner from a real terminal (not from inside an interactive agent session, since it spawns child CLI processes):
 

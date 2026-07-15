@@ -54,7 +54,7 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 - `$orchestra plan <task>` — start an interactive planning workflow
 - `$orchestra plan-advanced <task>` — same, but with a relentless interview pass
 - `$orchestra execute` — execute one phase, with audits
-- `$orchestra execute all` — Codex autopilot through every remaining phase, with verification, audit, and repair loops
+- `$orchestra execute all` — Codex autopilot through every remaining phase, with verification, audit, repair loops, and a fresh app task for each next phase when the same local project can be preserved
 - `$orchestra resolve`, `$orchestra revise`, `$orchestra archive` — workflow utilities
 - `$simplify [target]` — cleanup-only review for reuse, simplification, efficiency, and altitude
 - `$orchestra thermonuclear-review [scope]` — deep, plan-aware, adversarially-verified review on demand
@@ -67,7 +67,7 @@ After the bootstrap reports success, summarize the available commands. Tailor th
 
 **Autonomous execution (terminal):**
 
-Inside the Codex app, use `$orchestra execute all` for in-app autopilot. The terminal runner below is for headless CLI loops.
+Inside the Codex app, use `$orchestra execute all` for in-app autopilot with a fresh top-level task for each next phase. The terminal runner below is for headless CLI loops.
 
 ```
 bash .orchestra/scripts/phase-runner.sh           # auto mode

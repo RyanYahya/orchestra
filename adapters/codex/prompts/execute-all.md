@@ -1,5 +1,5 @@
 ---
-description: Orchestra execute all - Codex autopilot through every remaining phase
+description: Orchestra execute all - Codex autopilot with a fresh app task for each next phase
 argument-hint: [MAX_PHASES]
 ---
 
